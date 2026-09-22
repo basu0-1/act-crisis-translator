@@ -84,3 +84,80 @@ def test_calculate_route_and_dynamic_recalculation(client):
     dec_after = client.get("/api/decision/current", headers={"Authorization": f"Bearer {token}"}).json()
     do_now_texts = " ".join([item["text"] for item in dec_after["action_plan"]["do_now"]])
     assert "Riverside Road" in do_now_texts or "Ridge" in do_now_texts
+
+
+def test_mobility_tier_route_recalculation(client):
+    # Login as user
+    login = client.post("/api/auth/login", json={
+        "email": "user@example.com",
+        "password": "User@ACT2026!"
+    })
+    token = login.json()["access_token"]
+    alerts = client.get("/api/alerts/active").json()
+    alert_id = alerts[0]["id"]
+
+    # 1. Reset demo to ensure clean unblocked state
+    client.post("/api/demo/reset", headers={"Authorization": f"Bearer {token}"})
+
+    # 2. Test NORMAL mobility tier (Default)
+    res_normal = client.post(
+        "/api/routes/calculate",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"alert_id": alert_id, "mobility": "NORMAL"}
+    )
+    assert res_normal.status_code == 200
+    route_normal = res_normal.json()
+    assert route_normal["mobility_tier"] == "NORMAL"
+    assert route_normal["distance_meters"] == 1600
+    assert route_normal["estimated_time_minutes"] == 10
+    props_normal = route_normal["waypoints_geojson"]["properties"]
+    assert "Standard pedestrian corridor" in props_normal.get("accessibility_info", "")
+
+    # 3. Test NORMAL -> LIMITED_WALKING
+    res_limited = client.post(
+        "/api/routes/calculate",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"alert_id": alert_id, "mobility": "LIMITED_WALKING"}
+    )
+    assert res_limited.status_code == 200
+    route_limited = res_limited.json()
+    assert route_limited["mobility_tier"] == "LIMITED_WALKING"
+    assert route_limited["distance_meters"] == 1600
+    assert route_limited["estimated_time_minutes"] == 14
+    props_limited = route_limited["waypoints_geojson"]["properties"]
+    assert "step-free corridor with rest zones" in props_limited.get("accessibility_info", "")
+
+    # 4. Test LIMITED_WALKING -> WHEELCHAIR
+    res_wheelchair = client.post(
+        "/api/routes/calculate",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"alert_id": alert_id, "mobility": "WHEELCHAIR"}
+    )
+    assert res_wheelchair.status_code == 200
+    route_wheelchair = res_wheelchair.json()
+    assert route_wheelchair["mobility_tier"] == "WHEELCHAIR"
+    assert route_wheelchair["distance_meters"] == 1650
+    assert route_wheelchair["estimated_time_minutes"] == 16
+    props_wheelchair = route_wheelchair["waypoints_geojson"]["properties"]
+    assert "Step-free curb-cut corridor" in props_wheelchair.get("accessibility_info", "")
+    assert route_wheelchair["shelter"]["wheelchair_accessible"] is True
+
+    # 5. Verify user profile and current decision package reflect WHEELCHAIR
+    dec_wheelchair = client.get("/api/decision/current", headers={"Authorization": f"Bearer {token}"}).json()
+    assert dec_wheelchair["route"]["mobility_tier"] == "WHEELCHAIR"
+    assert dec_wheelchair["route"]["estimated_time_minutes"] == 16
+
+    # 6. Test with Riverside Road BLOCKED while preserving WHEELCHAIR mobility
+    client.post("/api/demo/trigger-roadblock", headers={"Authorization": f"Bearer {token}"})
+    res_blocked_wheelchair = client.post(
+        "/api/routes/calculate",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"alert_id": alert_id, "mobility": "WHEELCHAIR"}
+    )
+    assert res_blocked_wheelchair.status_code == 200
+    route_blocked_wheelchair = res_blocked_wheelchair.json()
+    assert route_blocked_wheelchair["is_blocked"] is True
+    assert route_blocked_wheelchair["mobility_tier"] == "WHEELCHAIR"
+    assert route_blocked_wheelchair["distance_meters"] == 2350
+    assert route_blocked_wheelchair["estimated_time_minutes"] == 26
+

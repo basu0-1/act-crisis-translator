@@ -11,10 +11,11 @@ import {
 interface Props {
   route: Route;
   onRecalculate?: () => Promise<void>;
+  onMobilityChange?: (newMobility: MobilityTier) => Promise<void>;
   isLoading?: boolean;
 }
 
-export default function SafeRouteMap({ route, onRecalculate, isLoading }: Props) {
+export default function SafeRouteMap({ route, onRecalculate, onMobilityChange, isLoading }: Props) {
   const { t } = useI18n();
   const [mapMode, setMapMode] = useState<'topological' | 'interactive'>('topological');
 
@@ -126,7 +127,9 @@ export default function SafeRouteMap({ route, onRecalculate, isLoading }: Props)
 
               {/* Active Recalculated High Ground Route (Bold Blue / Emerald) */}
               <path
-                d="M 80 290 L 60 210 L 90 120 L 220 70 L 380 60 L 510 90"
+                d={route.mobility_tier === 'WHEELCHAIR'
+                  ? "M 80 290 L 70 200 L 110 110 L 240 65 L 390 60 L 510 90"
+                  : "M 80 290 L 60 210 L 90 120 L 220 70 L 380 60 L 510 90"}
                 fill="none"
                 stroke="#2563eb"
                 strokeWidth="5"
@@ -134,20 +137,31 @@ export default function SafeRouteMap({ route, onRecalculate, isLoading }: Props)
                 strokeLinejoin="round"
               />
               <text x="220" y="50" fill="#2563eb" fontSize="11" fontWeight="bold">
-                ▲ High-Ground Ridge Ave Bypass (+25m Elevation)
+                {route.mobility_tier === 'WHEELCHAIR'
+                  ? "▲ High-Ground Accessible Ramp Bypass (+25m Elevation)"
+                  : "▲ High-Ground Ridge Ave Bypass (+25m Elevation)"}
               </text>
             </>
           ) : (
             <>
               {/* Primary Direct Route (Blue) */}
               <path
-                d="M 80 290 L 180 240 L 290 200 L 400 170 L 510 130"
+                d={route.mobility_tier === 'WHEELCHAIR'
+                  ? "M 80 290 L 150 260 L 220 220 L 320 180 L 420 150 L 510 130"
+                  : "M 80 290 L 180 240 L 290 200 L 400 170 L 510 130"}
                 fill="none"
                 stroke="#2563eb"
                 strokeWidth="5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
+              <text x="220" y="240" fill="#2563eb" fontSize="10" fontWeight="bold">
+                {route.mobility_tier === 'WHEELCHAIR'
+                  ? "Step-Free Ramp Access Corridor"
+                  : route.mobility_tier === 'LIMITED_WALKING'
+                  ? "Level Grade Walking Path"
+                  : "Direct Pedestrian Route"}
+              </text>
               {/* Potential high ground alternative (light gray dashed) */}
               <path
                 d="M 80 290 L 60 210 L 90 120 L 220 70 L 380 60 L 510 90"
@@ -222,11 +236,22 @@ export default function SafeRouteMap({ route, onRecalculate, isLoading }: Props)
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
-            <span>Mobility Tier:</span>
-            <span className="font-bold text-slate-700 dark:text-slate-200">
-              {route.mobility_tier.replace('_', ' ')}
-            </span>
+          <div className="flex items-center space-x-2 text-xs">
+            <label htmlFor="mobility-tier-select" className="font-bold text-slate-700 dark:text-slate-300">
+              Mobility Tier:
+            </label>
+            <select
+              id="mobility-tier-select"
+              aria-label="Mobility Tier"
+              value={route.mobility_tier || 'NORMAL'}
+              disabled={isLoading}
+              onChange={(e) => onMobilityChange?.(e.target.value as MobilityTier)}
+              className="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition cursor-pointer disabled:opacity-50"
+            >
+              <option value="NORMAL">NORMAL</option>
+              <option value="LIMITED_WALKING">LIMITED WALKING</option>
+              <option value="WHEELCHAIR">WHEELCHAIR</option>
+            </select>
           </div>
         </div>
 
@@ -241,6 +266,14 @@ export default function SafeRouteMap({ route, onRecalculate, isLoading }: Props)
             <span>{isLoading ? t.recalculating : route.is_blocked ? 'Recalculate Route Again' : t.recalculatePrompt}</span>
           </button>
         )}
+      </div>
+
+      {/* Route Accessibility Information */}
+      <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs flex items-start space-x-2">
+        <span className="font-bold text-slate-700 dark:text-slate-300 shrink-0">Accessibility:</span>
+        <span className="text-slate-600 dark:text-slate-400">
+          {route.waypoints_geojson?.properties?.accessibility_info || 'Information unavailable.'}
+        </span>
       </div>
     </section>
   );

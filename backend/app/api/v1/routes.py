@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
-from app.models.models import User, EmergencyAlert, Shelter, Route, RouteEvent, MobilityTier, ActionPlan
+from app.models.models import (
+    User, EmergencyAlert, Shelter, Route, RouteEvent, MobilityTier, ActionPlan, RiskAssessment
+)
 from app.schemas.schemas import (
     RouteCalculationRequest, RouteRecalculationRequest, RouteResponse
 )
 from app.auth.deps import get_current_user
 from app.services.route_engine import RouteEngine
+from app.services.risk_engine import RiskEngine
 from app.services.action_plan_service import ActionPlanService
 from app.services.audit_service import AuditService
 
@@ -22,12 +25,29 @@ def calculate_route(
     if not alert:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alert not found")
 
+    # Check for existing route
+    existing_route = db.query(Route).filter(
+        Route.user_id == current_user.id,
+        Route.alert_id == alert.id
+    ).first()
+
+    is_currently_blocked = existing_route.is_blocked if existing_route else False
+
+    # Determine mobility tier from request, existing route, or profile
+    mobility = req.mobility or (existing_route.mobility_tier if existing_route else None) or (current_user.profile.mobility if current_user.profile else MobilityTier.NORMAL)
+
+    # Keep user profile mobility synchronized
+    if current_user.profile and current_user.profile.mobility != mobility:
+        current_user.profile.mobility = mobility
+
     # Select shelter
     if req.shelter_id:
         shelter = db.query(Shelter).filter(Shelter.id == req.shelter_id).first()
+    elif is_currently_blocked:
+        highland_shelter = db.query(Shelter).filter(Shelter.name.like("%Highland%")).first()
+        shelter = highland_shelter if highland_shelter else (existing_route.shelter if existing_route else None)
     else:
         # Default to first active open shelter (or wheelchair accessible if needed)
-        mobility = req.mobility or (current_user.profile.mobility if current_user.profile else MobilityTier.NORMAL)
         shelter_query = db.query(Shelter).filter(Shelter.is_active == True)
         if mobility == MobilityTier.WHEELCHAIR:
             shelter_query = shelter_query.filter(Shelter.wheelchair_accessible == True)
@@ -36,25 +56,18 @@ def calculate_route(
     if not shelter:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No suitable shelter available")
 
-    mobility = req.mobility or (current_user.profile.mobility if current_user.profile else MobilityTier.NORMAL)
-    origin_lat = req.origin_lat or (current_user.profile.location_lat if current_user.profile else 37.7749)
-    origin_lon = req.origin_lon or (current_user.profile.location_lon if current_user.profile else -122.4194)
+    origin_lat = req.origin_lat or (existing_route.origin_lat if existing_route else None) or (current_user.profile.location_lat if current_user.profile else 37.7749)
+    origin_lon = req.origin_lon or (existing_route.origin_lon if existing_route else None) or (current_user.profile.location_lon if current_user.profile else -122.4194)
 
     primary_geojson, alt_geojson, dist_m, est_mins = RouteEngine.compute_route(
         origin_lat=origin_lat,
         origin_lon=origin_lon,
         shelter=shelter,
         mobility=mobility,
-        is_recalculated=False
+        is_recalculated=is_currently_blocked
     )
 
-    # Check for existing route
-    route = db.query(Route).filter(
-        Route.user_id == current_user.id,
-        Route.alert_id == alert.id
-    ).first()
-
-    if not route:
+    if not existing_route:
         route = Route(
             user_id=current_user.id,
             alert_id=alert.id,
@@ -68,18 +81,20 @@ def calculate_route(
             mobility_tier=mobility,
             waypoints_geojson=primary_geojson,
             alternative_waypoints_geojson=alt_geojson,
-            is_blocked=False
+            is_blocked=is_currently_blocked
         )
         db.add(route)
     else:
+        route = existing_route
         route.shelter_id = shelter.id
+        route.destination_lat = shelter.latitude
+        route.destination_lon = shelter.longitude
         route.distance_meters = dist_m
         route.estimated_time_minutes = est_mins
         route.mobility_tier = mobility
         route.waypoints_geojson = primary_geojson
         route.alternative_waypoints_geojson = alt_geojson
-        route.is_blocked = False
-        route.blocked_reason = None
+        route.is_blocked = is_currently_blocked
 
     db.commit()
     db.refresh(route)
@@ -88,7 +103,7 @@ def calculate_route(
     plan_dict = ActionPlanService.generate_plan(
         severity=alert.severity,
         mobility=mobility,
-        is_blocked=False,
+        is_blocked=is_currently_blocked,
         time_to_impact_minutes=alert.time_to_impact_minutes,
         shelter_name=shelter.name
     )
@@ -115,6 +130,18 @@ def calculate_route(
         action_plan.avoid = plan_dict["avoid"]
         action_plan.if_then = plan_dict["if_then"]
         action_plan.version += 1
+
+    # Keep risk assessment synchronized with new mobility tier
+    risk = db.query(RiskAssessment).filter(
+        RiskAssessment.user_id == current_user.id,
+        RiskAssessment.alert_id == alert.id
+    ).first()
+    if risk:
+        score, level, factors, action_win = RiskEngine.evaluate(alert, mobility, origin_lat, origin_lon)
+        risk.risk_score = score
+        risk.risk_level = level
+        risk.risk_factors = [f.model_dump() for f in factors]
+        risk.action_window_minutes = action_win
 
     db.commit()
 

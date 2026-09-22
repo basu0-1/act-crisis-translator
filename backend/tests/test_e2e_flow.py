@@ -27,9 +27,11 @@ def run_e2e_verification():
         print("[PASS] Step 1: System Health Endpoint Verified (200 OK)")
 
         # Step 2: User Registration with Wheelchair Mobility
+        import time
+        unique_email = f"jordan.{int(time.time())}@crisis-test.org"
         reg_payload = {
             "full_name": "Jordan Rivera",
-            "email": "jordan.rivera@crisis-test.org",
+            "email": unique_email,
             "password": "SecurePassword123!",
             "preferred_language": "en",
             "mobility": "WHEELCHAIR"

@@ -137,6 +137,16 @@ class ApiClient {
     });
   }
 
+  async calculateRoute(alertId: number, mobility: MobilityTier): Promise<Route> {
+    return this.request<Route>('/routes/calculate', {
+      method: 'POST',
+      body: JSON.stringify({
+        alert_id: alertId,
+        mobility,
+      }),
+    });
+  }
+
   // --- Demo Simulation Triggers ---
   async triggerDemoRoadblock(): Promise<any> {
     return this.request('/demo/trigger-roadblock', { method: 'POST' });

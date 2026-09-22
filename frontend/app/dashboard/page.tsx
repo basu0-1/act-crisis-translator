@@ -6,7 +6,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { useOffline } from '@/hooks/useOffline';
 import { api } from '@/lib/api';
 import { OfflineStorage } from '@/lib/offline';
-import { EmergencyDecisionPackage } from '@/types';
+import { EmergencyDecisionPackage, MobilityTier } from '@/types';
 
 import EmergencyStatusCard from '@/components/EmergencyStatusCard';
 import PersonalRiskCard from '@/components/PersonalRiskCard';
@@ -85,6 +85,24 @@ export default function DashboardPage() {
       await fetchDecision();
     } catch (err: any) {
       alert(err.message || 'Recalculation error');
+    } finally {
+      setRecalculating(false);
+    }
+  };
+
+  const handleMobilityChange = async (newMobility: MobilityTier) => {
+    if (!decision?.alert) return;
+    setRecalculating(true);
+    try {
+      await api.calculateRoute(decision.alert.id, newMobility);
+      try {
+        await api.updateProfile({ mobility: newMobility });
+      } catch {
+        // Keep going even if user profile endpoint returns an issue
+      }
+      await fetchDecision();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update route for selected mobility tier');
     } finally {
       setRecalculating(false);
     }
@@ -203,6 +221,7 @@ export default function DashboardPage() {
       <SafeRouteMap
         route={decision.route}
         onRecalculate={handleRecalculate}
+        onMobilityChange={handleMobilityChange}
         isLoading={recalculating}
       />
 

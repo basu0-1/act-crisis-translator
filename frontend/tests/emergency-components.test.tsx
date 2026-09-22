@@ -1,13 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import EmergencyStatusCard from '../components/EmergencyStatusCard';
 import PersonalRiskCard from '../components/PersonalRiskCard';
 import ActionPlanCards from '../components/ActionPlanCards';
 import ShelterCard from '../components/ShelterCard';
+import SafeRouteMap from '../components/SafeRouteMap';
 import { I18nProvider } from '../hooks/useI18n';
 import { translations } from '../lib/i18n';
-import { EmergencyAlert, RiskAssessment, ActionPlan, Shelter } from '../types';
+import { EmergencyAlert, RiskAssessment, ActionPlan, Shelter, Route } from '../types';
 
 const renderWithI18n = (ui: React.ReactElement) => {
   return render(<I18nProvider>{ui}</I18nProvider>);
@@ -88,6 +89,30 @@ const mockShelter: Shelter = {
   is_active: true,
 };
 
+const mockRoute: Route = {
+  id: 1,
+  user_id: 1,
+  alert_id: 1,
+  shelter_id: 1,
+  origin_lat: 37.7749,
+  origin_lon: -122.4194,
+  destination_lat: 37.7810,
+  destination_lon: -122.4080,
+  distance_meters: 1600,
+  estimated_time_minutes: 10,
+  mobility_tier: 'NORMAL',
+  waypoints_geojson: {
+    type: 'FeatureCollection',
+    properties: {
+      accessibility_info: 'Standard pedestrian corridor, unconstrained walking grade.',
+    },
+    features: [],
+  },
+  is_blocked: false,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
 describe('Emergency Decision Components', () => {
   it('renders EmergencyStatusCard with proper demo badge and severity', () => {
     renderWithI18n(<EmergencyStatusCard alert={mockAlert} />);
@@ -129,5 +154,33 @@ describe('Emergency Decision Components', () => {
     expect(translations.en.qWhatHappened).toBe('What is happening?');
     expect(translations.hi.qWhatHappened).toBe('क्या हो रहा है?');
     expect(translations.ja.qWhatHappened).toBe('何が起きているのか？');
+  });
+
+  it('renders SafeRouteMap with accessible Mobility Tier selector and options', () => {
+    renderWithI18n(<SafeRouteMap route={mockRoute} />);
+    const select = screen.getByLabelText(/Mobility Tier/i) as HTMLSelectElement;
+    expect(select).toBeDefined();
+    expect(select.value).toBe('NORMAL');
+    expect(screen.getByRole('option', { name: 'NORMAL' })).toBeDefined();
+    expect(screen.getByRole('option', { name: 'LIMITED WALKING' })).toBeDefined();
+    expect(screen.getByRole('option', { name: 'WHEELCHAIR' })).toBeDefined();
+    expect(screen.getByText('Standard pedestrian corridor, unconstrained walking grade.')).toBeDefined();
+  });
+
+  it('triggers onMobilityChange when user selects a different mobility tier', () => {
+    const onMobilityChange = vi.fn();
+    renderWithI18n(<SafeRouteMap route={mockRoute} onMobilityChange={onMobilityChange} />);
+    const select = screen.getByLabelText(/Mobility Tier/i);
+    fireEvent.change(select, { target: { value: 'WHEELCHAIR' } });
+    expect(onMobilityChange).toHaveBeenCalledWith('WHEELCHAIR');
+  });
+
+  it('renders fallback when accessibility information is unavailable', () => {
+    const routeWithoutAccessibility: Route = {
+      ...mockRoute,
+      waypoints_geojson: null,
+    };
+    renderWithI18n(<SafeRouteMap route={routeWithoutAccessibility} />);
+    expect(screen.getByText('Information unavailable.')).toBeDefined();
   });
 });

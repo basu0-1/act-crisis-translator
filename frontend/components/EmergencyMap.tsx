@@ -14,7 +14,8 @@ import {
   Maximize2,
   Info
 } from "lucide-react";
-import { Road, Shelter, UserProfile, RouteRecommendation, Alert } from "../types";
+import { Road, Shelter, UserProfile, RouteRecommendation, Alert, LanguageType } from "../types";
+import { getTranslation } from "../lib/translations";
 
 interface EmergencyMapProps {
   user: UserProfile;
@@ -23,6 +24,7 @@ interface EmergencyMapProps {
   shelters: Shelter[];
   routeRec: RouteRecommendation;
   isRecalculating?: boolean;
+  language?: LanguageType;
 }
 
 export const EmergencyMap: React.FC<EmergencyMapProps> = ({
@@ -32,12 +34,13 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
   shelters,
   routeRec,
   isRecalculating = false,
+  language = "en",
 }) => {
   const [selectedEntity, setSelectedEntity] = useState<any>(null);
   const [showFloodZone, setShowFloodZone] = useState(true);
+  const t = getTranslation(language);
 
   // Projected Canvas / SVG Coordinates (simulated normalized city grid)
-  // Origin: USER_HOME at (250, 320)
   const nodePositions: Record<string, { x: number; y: number; label: string }> = {
     USER_HOME: { x: 260, y: 340, label: "You (Home)" },
     JUNCTION_NORTH: { x: 210, y: 220, label: "North Junction" },
@@ -53,16 +56,16 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
   const isRouteDActive = activeDestinationId === "SHELTER_C";
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex flex-col relative">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-lg flex flex-col relative transition-colors">
       {/* Map Header */}
-      <div className="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+      <div className="bg-slate-50 dark:bg-slate-950 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <MapIcon className="h-4 w-4 text-cyan-400" />
-          <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-            Live Tactical Geospatial Map
+          <MapIcon className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+          <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+            {t.tacticalEvacuationMap}
           </span>
-          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-cyan-300 font-mono">
-            OSM / GeoJSON Grid
+          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-cyan-300 font-mono">
+            GeoJSON Grid
           </span>
         </div>
 
@@ -70,14 +73,14 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setShowFloodZone(!showFloodZone)}
-            className={`text-xs px-2.5 py-1 rounded border transition flex items-center space-x-1 ${
+            className={`text-xs px-2.5 py-1 rounded-lg border transition flex items-center space-x-1 ${
               showFloodZone
-                ? "bg-red-950/80 border-red-500/50 text-red-300"
-                : "bg-slate-900 border-slate-700 text-slate-400"
+                ? "bg-red-50 dark:bg-red-950/80 border-red-300 dark:border-red-500/50 text-red-700 dark:text-red-300 font-bold"
+                : "bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400"
             }`}
           >
             <Layers className="h-3 w-3" />
-            <span className="hidden sm:inline">Flood Zone</span>
+            <span className="hidden sm:inline">{t.floodZoneProximity}</span>
           </button>
         </div>
       </div>
@@ -87,19 +90,18 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
         <div className="absolute inset-0 bg-slate-950/85 z-30 flex flex-col items-center justify-center space-y-3 backdrop-blur-sm animate-fade-in">
           <div className="h-12 w-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" />
           <div className="text-center">
-            <span className="text-base font-black text-white uppercase tracking-wider block">
-              🚨 EVENT DETECTED: RECALCULATING ROUTE...
+            <span className="text-sm sm:text-base font-black text-white uppercase tracking-wider block">
+              🚨 {t.recalculatingRoute}
             </span>
             <span className="text-xs text-emerald-400">
-              Evaluating safe corridors & barrier-free elevation paths
+              {t.safeRouteDescription}
             </span>
           </div>
         </div>
       )}
 
-      {/* Interactive Map Visual (High-Fidelity Tactical SVG Map) */}
+      {/* Interactive Map Visual */}
       <div className="relative w-full h-[380px] sm:h-[430px] bg-slate-950 overflow-hidden select-none">
-        {/* Subtle grid background */}
         <svg className="w-full h-full" viewBox="0 0 600 420">
           <defs>
             <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
@@ -139,65 +141,46 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
 
           {/* Hazard Flood Zone Overlay */}
           {showFloodZone && (
-            <g className="animate-pulse" style={{ animationDuration: "4s" }}>
-              <circle
+            <g className="transition-opacity duration-500">
+              <ellipse
                 cx="150"
-                cy="180"
-                r="130"
+                cy="190"
+                rx="110"
+                ry="90"
                 fill="url(#floodGrad)"
-                stroke="#DC2626"
+                stroke="#EF4444"
                 strokeWidth="1.5"
-                strokeDasharray="4 4"
+                strokeDasharray="4,4"
               />
-              <text x="100" y="195" fill="#F87171" fontSize="11" fontWeight="bold" opacity="0.9">
-                🔴 FLOOD HAZARD ZONE (5 km)
+              <text x="100" y="195" fill="#FCA5A5" fontSize="10" fontWeight="bold" opacity="0.8">
+                ⚠️ Active Flood Inundation Zone
               </text>
             </g>
           )}
 
-          {/* Road Network Segments */}
+          {/* Road Network Connections */}
           {roads.map((road) => {
-            const start = nodePositions[road.start_node] || { x: 260, y: 340 };
-            const end = nodePositions[road.end_node] || { x: 360, y: 130 };
+            const start = nodePositions[road.start_node];
+            const end = nodePositions[road.end_node];
+            if (!start || !end) return null;
 
-            let strokeColor = "#10B981"; // Safe Green
+            const isFlooded = road.status === "flooded";
+            const isBlocked = road.status === "blocked";
+            const isStairs = road.has_stairs;
+
+            let strokeColor = "#475569";
             let strokeWidth = 3;
             let strokeDash = "none";
-            let isCurrentRecommended = false;
 
-            if (road.status === "blocked") {
-              strokeColor = "#DC2626";
-              strokeDash = "6 6";
-              strokeWidth = 4;
-            } else if (road.status === "flooded") {
+            if (isFlooded || isBlocked) {
               strokeColor = "#EF4444";
-              strokeWidth = 4;
-              strokeDash = "4 4";
-            } else if (road.status === "congested") {
-              strokeColor = "#F59E0B";
-              strokeWidth = 3;
-            } else if (road.has_stairs) {
+              strokeDash = "6,4";
+            } else if (isStairs) {
               strokeColor = "#F97316";
-              strokeDash = "3 3";
-            }
-
-            if (routeRec.recommended_route) {
-              if (
-                (road.id === "R3" && isRouteCActive) ||
-                (road.id === "R6" && isRouteDActive)
-              ) {
-                isCurrentRecommended = true;
-                strokeColor = "#10B981";
-                strokeWidth = 6;
-              }
             }
 
             return (
-              <g
-                key={road.id}
-                className="cursor-pointer group"
-                onClick={() => setSelectedEntity({ type: "road", data: road })}
-              >
+              <g key={road.id} className="cursor-pointer" onClick={() => setSelectedEntity({ type: "road", data: road })}>
                 <line
                   x1={start.x}
                   y1={start.y}
@@ -206,77 +189,81 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
                   stroke={strokeColor}
                   strokeWidth={strokeWidth}
                   strokeDasharray={strokeDash}
-                  filter={isCurrentRecommended ? "url(#glow)" : undefined}
+                  strokeLinecap="round"
                 />
-                {/* Road label */}
-                <text
-                  x={(start.x + end.x) / 2 + 5}
-                  y={(start.y + end.y) / 2 - 5}
-                  fill={isCurrentRecommended ? "#34D399" : "#94A3B8"}
-                  fontSize="9"
-                  fontWeight={isCurrentRecommended ? "bold" : "normal"}
-                  className="bg-slate-900"
-                >
-                  {road.name.split("(")[0]}
-                </text>
               </g>
             );
           })}
 
-          {/* Shelters & Facility Markers */}
+          {/* Highlighted Safe Route */}
+          {routeRec.recommended_route && (
+            <g filter="url(#glow)">
+              {isRouteCActive && (
+                <path
+                  d="M 260 340 L 380 300 L 360 130"
+                  fill="none"
+                  stroke="url(#safeRouteGrad)"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="animate-pulse"
+                />
+              )}
+              {isRouteDActive && (
+                <path
+                  d="M 260 340 L 380 300 L 450 60"
+                  fill="none"
+                  stroke="url(#safeRouteGrad)"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="animate-pulse"
+                />
+              )}
+            </g>
+          )}
+
+          {/* Shelters */}
           {shelters.map((shelter) => {
-            const pos = nodePositions[shelter.id] || { x: 300, y: 150 };
-            const isDestination = shelter.id === activeDestinationId;
+            const pos = nodePositions[shelter.id];
+            if (!pos) return null;
+            const isAssigned = activeDestinationId === shelter.id;
 
             return (
               <g
                 key={shelter.id}
-                className="cursor-pointer"
+                className="cursor-pointer group"
                 onClick={() => setSelectedEntity({ type: "shelter", data: shelter })}
               >
-                {isDestination && (
-                  <circle
-                    cx={pos.x}
-                    cy={pos.y}
-                    r="22"
-                    fill="none"
-                    stroke="#10B981"
-                    strokeWidth="2"
-                    className="animate-ping"
-                  />
+                {isAssigned && (
+                  <circle cx={pos.x} cy={pos.y} r="22" fill="#10B981" fillOpacity="0.2" className="animate-ping" />
                 )}
                 <circle
                   cx={pos.x}
                   cy={pos.y}
-                  r="14"
-                  fill={isDestination ? "#065F46" : "#1E293B"}
-                  stroke={isDestination ? "#10B981" : "#64748B"}
-                  strokeWidth="2"
+                  r="13"
+                  fill={isAssigned ? "#059669" : "#1E293B"}
+                  stroke={isAssigned ? "#34D399" : "#475569"}
+                  strokeWidth="2.5"
                 />
-                <text
-                  x={pos.x - 6}
-                  y={pos.y + 4}
-                  fill={isDestination ? "#34D399" : "#E2E8F0"}
-                  fontSize="10"
-                  fontWeight="bold"
-                >
-                  {shelter.type === "hospital" ? "🏥" : "🏫"}
+                <text x={pos.x - 6} y={pos.y + 4} fill="#FFFFFF" fontSize="10">
+                  🏫
                 </text>
                 <text
                   x={pos.x}
-                  y={pos.y + 24}
+                  y={pos.y - 17}
                   textAnchor="middle"
-                  fill={isDestination ? "#34D399" : "#CBD5E1"}
-                  fontSize="9"
-                  fontWeight={isDestination ? "bold" : "normal"}
+                  fill={isAssigned ? "#34D399" : "#94A3B8"}
+                  fontSize="10"
+                  fontWeight={isAssigned ? "bold" : "normal"}
                 >
-                  {shelter.name.split("(")[0].trim()}
+                  {shelter.name}
                 </text>
               </g>
             );
           })}
 
-          {/* User Location Marker (Home) */}
+          {/* User Location Node */}
           <g
             className="cursor-pointer"
             onClick={() => setSelectedEntity({ type: "user", data: user })}
@@ -300,29 +287,24 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
         </svg>
 
         {/* Map Legend */}
-        <div className="absolute bottom-2 left-2 bg-slate-900/90 border border-slate-800 p-2.5 rounded-lg text-[10px] space-y-1 text-slate-300 backdrop-blur-md">
+        <div className="absolute bottom-2 left-2 bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl text-[10px] space-y-1 text-slate-300 backdrop-blur-md">
           <span className="font-bold text-slate-200 block uppercase">Map Legend</span>
           <div className="flex items-center space-x-2">
             <span className="h-2 w-4 bg-emerald-500 rounded" />
-            <span>Verified Safe Route</span>
+            <span>{t.tacticalEvacuationMap}</span>
           </div>
           <div className="flex items-center space-x-2">
             <span className="h-2 w-4 bg-red-500 rounded" />
-            <span>Flooded / Blocked</span>
+            <span>{t.roadblockDetected}</span>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="h-2 w-4 bg-orange-500 rounded" />
-            <span>Inaccessible / Stairs</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span>🏫 Shelters</span>
-            <span>🏥 Hospitals</span>
+            <span>🏫 {t.assignedHaven}</span>
           </div>
         </div>
 
         {/* Selected Entity Inspector Tooltip */}
         {selectedEntity && (
-          <div className="absolute top-2 right-2 bg-slate-900 border border-slate-700 p-3 rounded-lg shadow-2xl text-xs max-w-xs text-slate-200 z-20">
+          <div className="absolute top-2 right-2 bg-slate-900/95 border border-slate-700 p-3 rounded-xl shadow-2xl text-xs max-w-xs text-slate-200 z-20 backdrop-blur-md">
             <div className="flex items-center justify-between border-b border-slate-800 pb-1 mb-1.5">
               <span className="font-bold uppercase text-cyan-400">
                 {selectedEntity.type === "road" ? "Road Telemetry" : "Facility Details"}
@@ -338,9 +320,8 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
               <div className="space-y-1 text-[11px]">
                 <p className="font-bold text-white">{selectedEntity.data.name}</p>
                 <p>Status: <span className="uppercase font-semibold text-amber-400">{selectedEntity.data.status}</span></p>
-                <p>Wheelchair Accessible: {selectedEntity.data.accessible_wheelchair ? "✓ Yes" : "❌ No"}</p>
-                <p>Has Stairs: {selectedEntity.data.has_stairs ? "⚠️ Yes (Stair barrier)" : "✓ No"}</p>
-                <p>Transit Time: {selectedEntity.data.travel_time_minutes} mins</p>
+                <p>Step-free: {selectedEntity.data.accessible_wheelchair ? "✓ Yes" : "❌ No"}</p>
+                <p>Transit: {selectedEntity.data.travel_time_minutes} mins</p>
               </div>
             )}
             {selectedEntity.type === "shelter" && (
@@ -348,7 +329,7 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
                 <p className="font-bold text-white">{selectedEntity.data.name}</p>
                 <p>Status: <span className="uppercase font-semibold text-emerald-400">{selectedEntity.data.status}</span></p>
                 <p>Capacity: {selectedEntity.data.current_occupancy} / {selectedEntity.data.capacity}</p>
-                <p>Accessible: {selectedEntity.data.is_accessible ? "✓ Fully Accessible" : "Standard"}</p>
+                <p>Accessible: {selectedEntity.data.is_accessible ? "✓ Accessible" : "Standard"}</p>
                 <p className="text-slate-400">{selectedEntity.data.address}</p>
               </div>
             )}

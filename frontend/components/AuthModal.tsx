@@ -1,18 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
-import { User, Lock, Mail, ShieldCheck, X, Zap, CheckCircle2, ArrowRight } from "lucide-react";
+import { User, Lock, Mail, ShieldCheck, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { MobilityType, TransportType } from "../types";
+import { LanguageType, MobilityType, TransportType } from "../types";
+import { getTranslation } from "../lib/translations";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  language?: LanguageType;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const { login, register, demoLogin } = useAuth();
-  const [tab, setTab] = useState<"login" | "register" | "demo">("demo");
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, language = "en" }) => {
+  const { login, register } = useAuth();
+  const [tab, setTab] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -20,6 +22,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [transport, setTransport] = useState<TransportType>("walking");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const t = getTranslation(language);
 
   if (!isOpen) return null;
 
@@ -47,7 +51,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       mobility,
       transport,
       companions: "none",
-      language: "en",
+      language,
     });
     setLoading(false);
     if (success) {
@@ -57,141 +61,90 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleDemoAccess = async (role: "user" | "admin") => {
-    setLoading(true);
-    await demoLogin(role);
-    setLoading(false);
-    onClose();
-  };
-
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-700 dark:bg-slate-900 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-scale-up">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-scale-up">
         {/* Header */}
-        <div className="bg-slate-950 px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="bg-slate-50 dark:bg-slate-950 px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center space-x-2.5">
-            <ShieldCheck className="h-5 w-5 text-red-500" />
-            <h3 className="font-bold text-base text-white">
-              ACT Account & Access Control
+            <ShieldCheck className="h-5 w-5 text-red-600" />
+            <h3 className="font-bold text-base text-slate-900 dark:text-white">
+              {t.authTitle}
             </h3>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1">
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-slate-800 bg-slate-950/60 p-1 text-xs font-semibold">
-          <button
-            onClick={() => { setTab("demo"); setError(null); }}
-            className={`flex-1 py-2 rounded-lg transition ${
-              tab === "demo" ? "bg-red-600 text-white shadow" : "text-slate-400 hover:text-white"
-            }`}
-          >
-            ⚡ 1-Click Demo Access
-          </button>
+        <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/60 p-1 text-xs font-semibold">
           <button
             onClick={() => { setTab("login"); setError(null); }}
             className={`flex-1 py-2 rounded-lg transition ${
-              tab === "login" ? "bg-slate-800 text-white shadow" : "text-slate-400 hover:text-white"
+              tab === "login"
+                ? "bg-white dark:bg-slate-800 text-red-600 dark:text-white shadow-sm font-bold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            Sign In
+            {t.signIn}
           </button>
           <button
             onClick={() => { setTab("register"); setError(null); }}
             className={`flex-1 py-2 rounded-lg transition ${
-              tab === "register" ? "bg-slate-800 text-white shadow" : "text-slate-400 hover:text-white"
+              tab === "register"
+                ? "bg-white dark:bg-slate-800 text-red-600 dark:text-white shadow-sm font-bold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            Create Profile
+            {t.createProfile}
           </button>
         </div>
 
         {/* Body */}
         <div className="p-5 space-y-4">
           {error && (
-            <div className="bg-red-950/60 border border-red-500/50 p-2.5 rounded-lg text-xs text-red-300">
+            <div className="bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-500/50 p-2.5 rounded-lg text-xs text-red-700 dark:text-red-300">
               {error}
             </div>
           )}
 
-          {/* ⚡ TAB 1: 1-Click Demo Access */}
-          {tab === "demo" && (
-            <div className="space-y-3">
-              <p className="text-xs text-slate-300">
-                Instantly switch roles to test end-user emergency routing or developer database management:
-              </p>
-
-              <button
-                onClick={() => handleDemoAccess("user")}
-                disabled={loading}
-                className="w-full bg-slate-950 hover:bg-slate-800 border border-slate-700 p-3.5 rounded-xl flex items-center justify-between text-left transition group"
-              >
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <User className="h-4 w-4 text-amber-400" />
-                    <span className="font-bold text-sm text-white">End User (Demo Profile)</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Limited mobility, step-free evacuation routing to Shelter B.
-                  </p>
-                </div>
-                <span className="text-xs text-amber-400 font-bold group-hover:translate-x-1 transition">
-                  Select →
-                </span>
-              </button>
-
-              <button
-                onClick={() => handleDemoAccess("admin")}
-                disabled={loading}
-                className="w-full bg-slate-950 hover:bg-slate-800 border border-slate-700 p-3.5 rounded-xl flex items-center justify-between text-left transition group"
-              >
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <ShieldCheck className="h-4 w-4 text-cyan-400" />
-                    <span className="font-bold text-sm text-white">Developer / Admin Console</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Full database table management, live alert broadcasting & audit logs.
-                  </p>
-                </div>
-                <span className="text-xs text-cyan-400 font-bold group-hover:translate-x-1 transition">
-                  Select →
-                </span>
-              </button>
-            </div>
-          )}
-
-          {/* 🔑 TAB 2: Sign In */}
+          {/* 🔑 TAB 1: Sign In */}
           {tab === "login" && (
-            <form onSubmit={handleLogin} className="space-y-3 text-xs">
+            <form onSubmit={handleLogin} className="space-y-3.5 text-xs">
               <div>
-                <label className="text-slate-400 font-semibold block mb-1">Email Address</label>
+                <label className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">
+                  {t.emailLabel}
+                </label>
                 <div className="relative">
-                  <Mail className="h-4 w-4 text-slate-500 absolute left-3 top-2.5" />
+                  <Mail className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="user@example.com"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-white focus:outline-none focus:border-red-500"
+                    placeholder="user@crisis.act"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-red-500 transition"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-slate-400 font-semibold block mb-1">Password</label>
+                <label className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">
+                  {t.passwordLabel}
+                </label>
                 <div className="relative">
-                  <Lock className="h-4 w-4 text-slate-500 absolute left-3 top-2.5" />
+                  <Lock className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-white focus:outline-none focus:border-red-500"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg pl-9 pr-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-red-500 transition"
                   />
                 </div>
               </div>
@@ -199,71 +152,79 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-lg transition text-xs shadow-lg mt-2"
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition text-xs shadow-md shadow-red-600/20 mt-3"
               >
-                {loading ? "Authenticating..." : "Sign In"}
+                {loading ? "..." : t.signIn}
               </button>
             </form>
           )}
 
-          {/* 📝 TAB 3: Create Real User Account */}
+          {/* 📝 TAB 2: Create Real User Account */}
           {tab === "register" && (
             <form onSubmit={handleRegister} className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-400 font-semibold block mb-1">Full Name</label>
+                <label className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">
+                  {t.nameLabel}
+                </label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Elena Vance"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-red-500"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-red-500 transition"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 font-semibold block mb-1">Email Address</label>
+                <label className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">
+                  {t.emailLabel}
+                </label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="elena@example.com"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-red-500"
+                  placeholder="elena@crisis.act"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-red-500 transition"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 font-semibold block mb-1">Password</label>
+                <label className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">
+                  {t.passwordLabel}
+                </label>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a strong password"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-red-500"
+                  placeholder="••••••••"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-red-500 transition"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 font-semibold block mb-1">Mobility Level</label>
+                <label className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">
+                  {t.mobilityLabel}
+                </label>
                 <select
                   value={mobility}
                   onChange={(e) => setMobility(e.target.value as MobilityType)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-red-500"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-red-500 transition"
                 >
-                  <option value="normal">Normal Walking Pace</option>
-                  <option value="limited">Limited Walking (Avoid Stairs)</option>
-                  <option value="wheelchair">Wheelchair User (Step-free Mandatory)</option>
+                  <option value="normal">{t.normalMobility}</option>
+                  <option value="limited">{t.limitedMobility}</option>
+                  <option value="wheelchair">{t.wheelchairMobility}</option>
                 </select>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-lg transition text-xs shadow-lg mt-2"
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition text-xs shadow-md shadow-red-600/20 mt-3"
               >
-                {loading ? "Creating Profile..." : "Create Personalized Profile"}
+                {loading ? "..." : t.createProfile}
               </button>
             </form>
           )}

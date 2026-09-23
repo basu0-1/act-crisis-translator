@@ -1,4 +1,4 @@
-# ACT — Actionable Crisis Translator (v1.1.0)
+# ACT — Actionable Crisis Translator (v2.4.0)
 
 > **"Turn emergency information into clear personal decisions."**
 
@@ -7,56 +7,79 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Security: RBAC](https://img.shields.io/badge/Security-Strict%20RBAC%20(JWT)-blueviolet.svg)]()
+[![PDF Documentation](https://img.shields.io/badge/Documentation-PDF%20Available-crimson.svg)](./ACT_System_Documentation.pdf)
+
+---
+
+## 📄 Comprehensive PDF Documentation
+A complete technical architecture specification, competitive benchmark analysis, and system documentation is available as a publication-ready PDF:
+👉 **[Download ACT_System_Documentation.pdf](./ACT_System_Documentation.pdf)** or find it in [`docs/ACT_System_Documentation_and_Competitive_Analysis.pdf`](./docs/ACT_System_Documentation_and_Competitive_Analysis.pdf).
 
 ---
 
 ## 🚨 What is ACT?
 
-**ACT (Actionable Crisis Translator)** is an AI-powered personalized emergency decision-support platform. It transforms official, technical disaster alerts into immediate, barrier-free survival directives tailored to individual mobility, transit modes, and family companions.
+**ACT (Actionable Crisis Translator)** is an autonomous, personalized emergency decision-support platform. It solves the **"Information Paradox"** in disaster management by translating technical, broadcast-level disaster alerts into immediate, step-free survival directives tailored to individual physical mobility, transport modes, and family companions.
 
-### Key Capabilities:
-- **Decision Intelligence Pipeline**: 5-stage transformation (`01 ALERT` → `02 RISK` → `03 ACTION` → `04 ROUTE` → `05 SHELTER`).
-- **6 Supported Emergency Hazards**: Flood, Wildfire, Cyclone, Earthquake, Extreme Heat, and Urban Emergency.
-- **Dynamic Roadblock Rerouting**: Instant recalculation when roads or bridges flood, automatically redirecting from primary safe haven (`Shelter B`) to secondary safe haven (`Shelter C`).
-- **4-Tier Source Hierarchy**: Level 1 Official (NDMA, IMD, USGS) > Level 2 Infrastructure & Sensors > Level 3 Responders > Level 4 Crowdsourced.
-- **Zero-Hallucination Guarantee**: Strict deterministic engine execution. Missing or unverified data triggers conservative shelter-in-place directives and `"Information unavailable."`
-- **Accessibility-First Routing**: Specialized graph traversal guaranteeing step-free paths for wheelchair users and limited mobility citizens.
-- **Multilingual Support**: Real-time localization across English (`en`), Hindi (`hi`), and Japanese (`ja`).
-- **Theme Support**: Seamless Light, Dark, and System (`☀️ 🌙 💻`) modes.
+### Key Capabilities & What Makes ACT Best & Unique:
+- **Zero-Hallucination Deterministic Engine**: Mathematical rule engines govern all risk calculations, Dijkstra graph routing, and shelter capacity assignments. Generative AI is restricted to structured fact extraction and multilingual translation—preventing lethal hallucinations.
+- **Dynamic Roadblock Rerouting**: When a road or bridge floods (e.g. Route C / Highland Blvd), ACT's event engine blacklists the corridor and automatically pivots to an alternative safe path and secondary shelter (`Shelter C - Highland Ridge`).
+- **Accessibility-First Routing**: Specialized graph traversal strictly rejects stairs and enforces step-free ramps for wheelchair users and citizens with limited walking mobility.
+- **Hyper-Personalized Risk Score**: $Risk = Severity (35\%) \times Exposure (25\%) \times Mobility (25\%) \times Time (15\%)$ producing a calibrated 0–100 score.
+- **4-Tier Source Hierarchy**: Level 1 Official (NDMA, IMD, USGS) > Level 2 Sensor Mesh > Level 3 On-Ground Responders > Level 4 Crowdsourced Telemetry.
+- **6 Native Languages with Voice Audio**: Instant linguistic switching between **English (`en`)**, **Hindi (`hi`)**, **Bengali (`bn`)**, **Odia (`or`)**, **Urdu (`ur`)**, and **Japanese (`ja`)**, with Web Speech API audio synthesis. Every single word across the UI translates dynamically.
+- **ChatGPT-Style Collapsible Sidebar**: Modern AI workspace ergonomics featuring a collapsible/expandable sidebar with quick assessment actions, hazard badges, and bottom user card, paired with a minimal Top Bar and seamless Light/Dark theme switching.
+- **Complete Offline Resiliency & Fail-Safe Mode**: Offline caching ensures usability during cellular outages. Missing telemetry triggers conservative vertical shelter-in-place directives.
 
 ---
 
-## 🏗️ System Architecture & Data Flow
+## 📊 Competitive Benchmark: ACT vs Existing Systems
+
+| Capability Dimension | Traditional SMS / TV | Google Public Alerts | FEMA Mobile App | Generic LLM (ChatGPT) | **ACT (This Platform)** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Personalized Risk Score** | ❌ None (Broadcast) | ❌ Polygon only | ❌ Static checklist | ⚠️ Inconsistent guess | **✓ Formula-based (0–100)** |
+| **Dynamic Roadblock Reroute** | ❌ None | ⚠️ Standard traffic | ❌ Static directory | ❌ No geospatial graph | **✓ Real-time corridor & haven pivot** |
+| **Step-Free / Ramp Routing** | ❌ Ignored | ⚠️ Limited street view | ❌ Generic text | ❌ Hallucinates paths | **✓ Guaranteed stair-free validation** |
+| **Hallucination Prevention** | ✓ Official text | ✓ Official feeds | ✓ Static content | ❌ Dangerous confabulation | **✓ Zero-Hallucination Engine** |
+| **Action Plan Directives** | ❌ Unstructured | ⚠️ Long paragraphs | ⚠️ Static advice | ⚠️ Verbose prose | **✓ DO NOW, NEXT, AVOID + TTS Audio** |
+| **Live Shelter Balancing** | ❌ No telemetry | ⚠️ External link | ⚠️ Static directory | ❌ No database state | **✓ Live capacity & slot tracking** |
+| **Offline Reliability** | ✓ SMS offline | ❌ Needs web | ⚠️ Cached guides | ❌ Needs cloud API | **✓ Full offline cache + fail-safe** |
+| **Linguistic Localization** | ⚠️ 1–2 languages | ✓ Auto-translate | ⚠️ EN / ES only | ✓ Multi-language | **✓ 6 Native Langs (Odia, Bengali...)** |
+| **UI Design & Ergonomics** | ❌ Plain text | ⚠️ Search card | ⚠️ Form tabs | ✓ Conversational | **✓ ChatGPT Sidebar + Light/Dark** |
+
+---
+
+## 🏗️ System Architecture & 5-Agent Pipeline
 
 ```mermaid
 flowchart TD
     subgraph S1["Data Ingestion & 4-Tier Provenance"]
         A1["Level 1: Official Authorities (NDMA, IMD, USGS)"]
-        A2["Level 2: Sensors & Gauge Networks"]
+        A2["Level 2: Sensors & Stream Gauges"]
         A3["Level 3: Verified On-Ground Responders"]
         A4["Level 4: Crowdsourced Telemetry"]
     end
 
-    subgraph S2["Harmonization & Decision Engines"]
-        E1["Alert Engine\n(Conflict Resolution & Source Hierarchy)"]
-        E2["Risk Engine\n(Severity × Exposure × Vulnerability × Time)"]
-        E3["Route Engine\n(NetworkX Dijkstra with Barrier Avoidance)"]
-        E4["Decision Engine\n(Verified Fact Assembly)"]
+    subgraph S2["Deterministic Mathematical Engines"]
+        E1["Alert Engine\n(4-Tier Hierarchy & Conflict Resolution)"]
+        E2["Risk Engine\n(Severity × Exposure × Mobility × Time)"]
+        E3["Route Engine\n(Dijkstra Pathfinding & Stair-Free Filter)"]
+        E4["Decision Engine\n(Assembly & Fact Verification)"]
     end
 
-    subgraph S3["5-Agent AI Pipeline"]
+    subgraph S3["5-Agent Collaborative AI Pipeline"]
         AG1["Agent 1: Alert Analyst"]
         AG2["Agent 2: Risk Analyst"]
         AG3["Agent 3: Route Analyst"]
         AG4["Agent 4: Action Planner (NOW, NEXT, AVOID, IF→THEN)"]
-        AG5["Agent 5: Communication Agent (EN / HI / JA)"]
+        AG5["Agent 5: Communication Agent (EN / HI / BN / OR / UR / JA)"]
     end
 
     subgraph S4["Client Layer (Next.js 14)"]
-        UI1["Landing Page with Hero & 5-Card Pipeline"]
-        UI2["7-Step Crisis Decision Dashboard"]
-        UI3["Interactive Roadblock Demo Drawer"]
-        UI4["Admin Developer DB Console"]
+        UI1["ChatGPT-Style Collapsible Sidebar"]
+        UI2["Streamlined Top Bar (Language, Theme, Audit)"]
+        UI3["4-Row Minimal Emergency Dashboard"]
+        UI4["Dynamic Roadblock Simulation Controls"]
     end
 
     S1 --> E1
@@ -69,114 +92,51 @@ flowchart TD
 
 ---
 
-## 🔁 Killer Demo: Dynamic Roadblock Recalculation
+## 🚀 How to Run the Project Locally
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Citizen / Evaluator
-    participant UI as Next.js Dashboard
-    participant API as FastAPI Backend (/api/*)
-    participant RE as Route Engine (NetworkX)
-    participant AP as Action Planner
-
-    User->>UI: View Active Evacuation Path
-    UI->>API: GET /api/decision/current
-    API-->>UI: Primary Route: Highland Blvd (R3) → Shelter B (ETA: 14 mins)
-
-    User->>UI: Click "Trigger Roadblock on Highland Blvd"
-    UI->>API: POST /api/demo/trigger-roadblock
-    API->>RE: Mark R3 as BLOCKED & Inundated
-    RE->>RE: Exclude R3 & Recompute Shortest Step-Free Path
-    RE-->>API: New Route: Ridge Connector (R6) → Shelter C (Ridge Heights Haven)
-    API->>AP: Update Directives & IF→THEN Rules
-    AP-->>API: Updated Action Plan (DO NOW: Abandon Highland Blvd)
-    API-->>UI: Stream Recalculated State
-    UI-->>User: Map renders R3 in RED DASHED "BLOCKED", draws new green path to Shelter C
-```
-
----
-
-## 📋 Standard Enterprise API Contracts (`/api/*`)
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health` / `/api/health` | System health, service status, and environment mode |
-| `GET` | `/api/decision/current` | Complete unified decision package (alert, risk, plan, route, shelters) |
-| `POST` | `/api/demo/trigger-roadblock` | Simulates road flood on R3; recalculates route to Shelter C |
-| `POST` | `/api/demo/reset` | Resets simulation to initial state (Shelter B) |
-| `GET` | `/api/admin/sources` | 4-Tier Source Hierarchy definitions and trust weights |
-| `GET` | `/api/routes/shelters` | Registry of shelters, open capacities, and accessibility |
-| `GET` | `/api/routes/roads` | Real-time road network segments, risk levels, and blockages |
-| `POST` | `/api/routes/recalculate` | Dynamic on-demand evacuation route calculation |
-| `POST` | `/api/risk/calculate` | Personalized multi-factor risk assessment (0–100 score) |
-| `POST` | `/api/plan/generate` | Generates verified DO NOW, NEXT, AVOID, and IF→THEN actions |
-| `POST` | `/api/auth/register` | Citizen / responder account registration with mobility preferences |
-| `POST` | `/api/auth/login` | JWT token authentication |
-| `GET` | `/api/auth/me` | Current authenticated profile and RBAC permissions |
-
----
-
-## 🧪 Verification & Automated Tests (35 / 35 Passed)
-
-Run the full backend test suite:
-```powershell
-cd backend
-pytest -v
-```
-
-### Verified Test Suites:
-- `test_api_v1.py` — Enterprise `/api/*` endpoints, source conflict resolution, multi-emergency coverage, fail-safe rules.
-- `test_api_endpoints.py` — Health contracts, simulation triggers, and plan generation.
-- `test_agents_and_pipeline.py` — 5-agent pipeline synthesis and zero-hallucination guard.
-- `test_alert_engine.py` — Alert ingestion, spatial exposure calculation, and CAP validation.
-- `test_risk_engine.py` — Multi-hazard risk scoring and mobility vulnerability weights.
-- `test_route_engine.py` — Dijkstra graph pathfinding, wheelchair stairs avoidance, and roadblock detour.
-- `test_auth_and_rbac.py` — JWT authentication, password hashing, and 403 Forbidden admin protection.
-- `test_database_persistence.py` — SQLAlchemy DB schema creation and seeding.
-
----
-
-## 🚀 Local Quickstart Guide
-
-### Prerequisites
-- Python 3.10+ (Tested on Python 3.14)
-- Node.js 18+ & npm
-
-### 1. Start the Backend API
+### 1. Start the Backend API (FastAPI)
 ```powershell
 cd C:\Projects\act\backend
-python -m uvicorn app.main:app --reload --port 8000
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-- API Base URL: `http://localhost:8000`
-- Interactive Swagger Docs: `http://localhost:8000/docs`
-- Health Endpoint: `http://localhost:8000/api/health`
+- Interactive Swagger API Documentation: `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/api/health`
 
-### 2. Start the Frontend Dashboard
+### 2. Start the Frontend Web Application (Next.js 14)
 ```powershell
 cd C:\Projects\act\frontend
 npm run dev
 ```
-- Open `http://localhost:3000` in your browser.
-- Production build: `npm run build` followed by `npm start`.
+- Interactive Web App: `http://localhost:3000`
+
+### 3. Run Automated Tests
+```powershell
+cd C:\Projects\act\backend
+pytest -v
+```
+*Current test suite: **35 / 35 passed in 1.31s**.*
 
 ---
 
-## 📱 User Interface Progression
+## 📦 GitHub Update & Push Commands
 
-1. **Home / Landing Page**: Brand header, hero badge, headline, CTAs, 5-card decision intelligence pipeline, methodology, capabilities, safety and trust guarantee.
-2. **Dashboard**: 7-Step crisis decision journey:
-   - Step 1: Current Emergency Status
-   - Step 2: Personalized Risk Score
-   - Step 3: What You Should Do Now (Priority Actions)
-   - Step 4: Safe Evacuation Route & Tactical Map
-   - Step 5: Designated Safe Haven
-   - Step 6: Live Updates & Recalculation Timeline
-   - Step 7: Active Personal Settings & Consent
-3. **Simulation Controls**: Collapsible top drawer to trigger instant roadblocks, adjust mobility preferences, and test multi-hazard responses.
+To commit and push all recent improvements (documentation, PDF, ChatGPT sidebar, multi-language engine) to GitHub:
 
----
+```powershell
+# 1. Navigate to the project directory
+cd C:\Projects\act
 
-## 🛡️ License
+# 2. Check the status of your branch
+git status
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+# 3. Stage all modified and new files (including docs, PDF, components)
+git add -A
+
+# 4. Commit changes with a descriptive message
+git commit -m "feat: complete system documentation, competitive benchmark PDF, ChatGPT sidebar, and multi-language engine"
+
+# 5. Push commits to GitHub repository (origin/main)
+git push origin main
+```
+
+*(Note: When prompted for credentials, use your GitHub username and Personal Access Token).*

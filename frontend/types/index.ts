@@ -1,174 +1,173 @@
-export type UserRole = 'END_USER' | 'ADMIN';
-export type MobilityTier = 'NORMAL' | 'LIMITED_WALKING' | 'WHEELCHAIR';
-export type LanguageCode = 'en' | 'hi' | 'ja';
-export type EmergencyType = 'FLOOD' | 'WILDFIRE' | 'EARTHQUAKE' | 'STORM' | 'CHEMICAL_HAZARD';
-export type SeverityLevel = 'LOW' | 'MODERATE' | 'SEVERE' | 'EXTREME';
-export type CertaintyLevel = 'POSSIBLE' | 'LIKELY' | 'OBSERVED';
-export type DataStatus = 'LIVE' | 'DEMO' | 'CACHED' | 'UNAVAILABLE';
-export type RiskLevel = 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
-export type ShelterStatus = 'OPEN' | 'FULL' | 'CLOSED' | 'UNAVAILABLE';
+export type HazardType = "flood" | "wildfire" | "cyclone" | "earthquake" | "extreme_heat" | "urban_emergency";
+export type AlertSeverity = "low" | "medium" | "high" | "extreme";
+export type AlertCertainty = "possible" | "likely" | "observed";
+export type SourceLevel = 1 | 2 | 3 | 4;
+
+export interface SourceProvenance {
+  source_name: string;
+  source_level: SourceLevel;
+  timestamp: string;
+  confidence: number;
+  verified: boolean;
+  source_url?: string;
+}
+
+export interface Alert {
+  id: string;
+  hazard_type: HazardType;
+  severity: AlertSeverity;
+  certainty: AlertCertainty;
+  headline: string;
+  description: string;
+  lat: number;
+  lng: number;
+  radius_km: number;
+  time_to_impact_minutes: number;
+  required_action: string;
+  source_level: SourceLevel;
+  provenance: SourceProvenance;
+  created_at: string;
+  active: boolean;
+}
+
+export type MobilityType = "normal" | "limited" | "wheelchair";
+export type TransportType = "walking" | "bicycle" | "car" | "public_transport";
+export type CompanionType = "none" | "child" | "elderly" | "pet";
+export type LanguageType = "en" | "hi" | "ja" | "bn" | "or" | "ur";
 
 export interface UserProfile {
-  id: number;
-  user_id: number;
-  full_name: string;
-  preferred_language: LanguageCode;
-  mobility: MobilityTier;
-  location_name: string;
-  location_lat: number;
-  location_lon: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UserPreferences {
-  id: number;
-  user_id: number;
-  theme: string;
-  notifications_enabled: boolean;
-  sound_alerts_enabled: boolean;
-  high_contrast: boolean;
-  offline_cache_enabled: boolean;
-}
-
-export interface User {
-  id: number;
-  email: string;
-  role: UserRole;
-  is_active: boolean;
-  created_at: string;
-  profile?: UserProfile;
-  preferences?: UserPreferences;
-}
-
-export interface AlertSource {
-  id: number;
+  id: string;
   name: string;
-  source_type: string;
-  url?: string;
-  is_verified: boolean;
-  trust_score: number;
+  lat: number;
+  lng: number;
+  language: LanguageType;
+  mobility: MobilityType;
+  transport: TransportType;
+  companions: CompanionType;
+  accessibility_requirements: string[];
+  critical_needs: string[];
 }
 
-export interface EmergencyAlert {
-  id: number;
-  title: string;
-  description: string;
-  emergency_type: EmergencyType;
-  severity: SeverityLevel;
-  certainty: CertaintyLevel;
-  hazard_polygon_geojson?: any;
-  time_to_impact_minutes: number;
-  source_id?: number;
-  source?: AlertSource;
-  verification_status: string;
-  data_status: DataStatus;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+export type RoadStatus = "safe" | "flooded" | "blocked" | "congested" | "inaccessible";
+export type ShelterStatus = "open" | "full" | "closed" | "unavailable";
 
-export interface RiskFactorDetail {
+export interface Road {
+  id: string;
   name: string;
-  score_impact: number;
-  description: string;
-  severity_level: string;
-}
-
-export interface RiskAssessment {
-  id?: number;
-  user_id: number;
-  alert_id: number;
-  risk_score: number;
-  risk_level: RiskLevel;
-  risk_factors: RiskFactorDetail[];
-  action_window_minutes: number;
-  disclaimer: string;
-  created_at: string;
+  start_node: string;
+  end_node: string;
+  status: RoadStatus;
+  risk_level: number;
+  accessible_wheelchair: boolean;
+  has_stairs: boolean;
+  travel_time_minutes: number;
+  coordinates: [number, number][];
 }
 
 export interface Shelter {
-  id: number;
+  id: string;
   name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  capacity_total: number;
-  capacity_available: number;
-  wheelchair_accessible: boolean;
-  medical_support: boolean;
-  pet_friendly: boolean;
+  type: string;
+  lat: number;
+  lng: number;
+  capacity: number;
+  current_occupancy: number;
   status: ShelterStatus;
-  last_verified: string;
-  is_active: boolean;
-}
-
-export interface RouteEvent {
-  id: number;
-  route_id: number;
-  event_type: string;
-  description: string;
-  location_name?: string;
-  latitude?: number;
-  longitude?: number;
-  created_at: string;
-}
-
-export interface Route {
-  id: number;
-  user_id: number;
-  alert_id: number;
-  shelter_id: number;
-  shelter?: Shelter;
-  origin_lat: number;
-  origin_lon: number;
-  destination_lat: number;
-  destination_lon: number;
-  distance_meters: number;
-  estimated_time_minutes: number;
-  mobility_tier: MobilityTier;
-  waypoints_geojson: any;
-  alternative_waypoints_geojson?: any;
-  is_blocked: boolean;
-  blocked_reason?: string;
-  events?: RouteEvent[];
-  created_at: string;
+  is_accessible: boolean;
   updated_at: string;
+  address: string;
 }
 
-export interface ActionItem {
-  id: string;
-  text: string;
-  priority: string;
-  category: string;
-  icon?: string;
+export interface RouteStep {
+  instruction: string;
+  road_name: string;
+  distance_meters: number;
+  estimated_seconds: number;
+  warning?: string;
 }
 
-export interface IfThenItem {
-  id: string;
+export interface RouteOption {
+  route_id: string;
+  name: string;
+  destination_id: string;
+  destination_name: string;
+  total_distance_km: number;
+  estimated_time_minutes: number;
+  safety_score: number;
+  is_accessible: boolean;
+  has_stairs: boolean;
+  status: RoadStatus;
+  steps: RouteStep[];
+  path_coordinates: [number, number][];
+}
+
+export interface RouteRecommendation {
+  recommended_route: RouteOption | null;
+  destination: Shelter | null;
+  destination_type: string;
+  estimated_time_minutes: number;
+  safety_score: number;
+  reasons: string[];
+  rejected_routes: { road_id?: string; road_name?: string; shelter_id?: string; reason: string }[];
+  all_routes: RouteOption[];
+  status: string;
+}
+
+export type RiskLevel = "low" | "medium" | "high" | "extreme";
+
+export interface RiskBreakdownItem {
+  factor: string;
+  weight: number;
+  contribution: number;
+  explanation: string;
+  satisfied: boolean;
+}
+
+export interface PersonalRisk {
+  score: number;
+  level: RiskLevel;
+  estimated_action_window_minutes: number;
+  reasons: string[];
+  breakdown: RiskBreakdownItem[];
+  prototype_disclaimer: string;
+}
+
+export interface IfThenRule {
   condition: string;
   action: string;
-  severity: string;
+  trigger_event: string;
 }
 
 export interface ActionPlan {
-  id?: number;
-  user_id: number;
-  alert_id: number;
-  do_now: ActionItem[];
-  do_next: ActionItem[];
-  avoid: ActionItem[];
-  if_then: IfThenItem[];
-  version: number;
-  created_at: string;
-  updated_at: string;
+  plan_id: string;
+  timestamp: string;
+  language: LanguageType;
+  hazard: string;
+  risk_score: number;
+  risk_level: string;
+  action_window_minutes: number;
+  destination_shelter: string;
+  route_summary: string;
+  now: string[];
+  next: string[];
+  avoid: string[];
+  if_then: IfThenRule[];
+  source_provenance: SourceProvenance;
+  is_cached?: boolean;
+  offline_ready?: boolean;
+  disclaimer: string;
+  failsafe_status?: string;
+  failsafe_reason?: string;
 }
 
-export interface EmergencyDecisionPackage {
-  alert: EmergencyAlert;
-  risk: RiskAssessment;
-  route: Route;
-  shelter: Shelter;
+export interface SimulationState {
+  alert: Alert;
+  user: UserProfile;
+  roads: Road[];
+  shelters: Shelter[];
+  risk: PersonalRisk;
+  route_recommendation: RouteRecommendation;
   action_plan: ActionPlan;
-  recent_events: RouteEvent[];
+  is_offline: boolean;
+  last_event_description: string;
 }

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "user_demo_01",
+    "name": "Demo User",
+    "mobility": "limited",
+    "transport": "walking",
+    "companions": "none",
+    "accessibility_requirements": [
+      "Step-free access required",
+      "Avoid steep inclines (>8%)",
+      "Paved pathways only"
+    ],
+    "critical_needs": [
+      "Uninterrupted mobility device clearance",
+      "Direct shelter reception support"
+    ]
+  },
+  {
+    "id": "user_wheelchair_02",
+    "name": "Elena Vance",
+    "mobility": "wheelchair",
+    "transport": "walking",
+    "companions": "child",
+    "accessibility_requirements": [
+      "Wide doorway ramps",
+      "Zero-curb paths"
+    ],
+    "critical_needs": [
+      "Power outlet for wheelchair charging"
+    ]
+  },
+  {
+    "id": "user_normal_03",
+    "name": "Alex Miller",
+    "mobility": "normal",
+    "transport": "car",
+    "companions": "pet",
+    "accessibility_requirements": [],
+    "critical_needs": []
+  }
+]

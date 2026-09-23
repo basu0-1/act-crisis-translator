@@ -1,60 +1,65 @@
+"""
+ACT (Actionable Crisis Translator) - FastAPI Main Application with Auth, RBAC & Database
+"""
+import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from app.core.config import settings
-from app.db.session import engine, Base
-from app.db.seed import seed_database
-from app.api.api import api_router
+from app.database import init_db
+from app.api import health, alerts, user, risk, route, plan, simulate, auth, admin, api_v1
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables exist and seed demo data
-    Base.metadata.create_all(bind=engine)
-    seed_database()
+    # Initialize DB tables and seed records on application startup
+    init_db()
     yield
-    # Shutdown
 
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    description="Emergency decision-support platform API: Converts emergency alerts into personalized risk scores, safe routes, and immediate action plans.",
-    lifespan=lifespan,
+    title="ACT — Actionable Crisis Translator API",
+    description="AI-powered personalized emergency decision-support system. Features persistent multi-user storage, RBAC security, live vs demo data provenance, and dynamic routing.",
+    version="1.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    lifespan=lifespan
 )
 
-# CORS middleware
+# Enable CORS for Next.js frontend
+origins = os.environ.get("CORS_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=origins if origins != ["*"] else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include API endpoints under /api
-app.include_router(api_router, prefix=settings.API_V1_STR)
+# Register API Routers (root legacy routes for backward compatibility + standard /api/*)
+app.include_router(health.router)
+app.include_router(auth.router)
+app.include_router(admin.router)
+app.include_router(alerts.router)
+app.include_router(user.router)
+app.include_router(risk.router)
+app.include_router(route.router)
+app.include_router(plan.router)
+app.include_router(simulate.router)
+app.include_router(api_v1.router, prefix="/api")
 
 
-@app.get("/health", tags=["Health"])
-def health_check():
+@app.get("/")
+def root():
     return {
-        "status": "healthy",
-        "service": "ACT API",
-        "version": settings.VERSION,
-        "environment": settings.ENVIRONMENT,
-        "mode": "DEMO / SIMULATION SUPPORTED" if settings.DEMO_MODE else "PRODUCTION"
+        "message": "Welcome to ACT — Actionable Crisis Translator API (v1.1.0)",
+        "docs": "/docs",
+        "health": "/health",
+        "system_status": "SYSTEM READY",
+        "multi_user_support": "ENABLED",
+        "database_persistence": "ACTIVE"
     }
 
 
-@app.exception_handler(500)
-async def internal_exception_handler(request: Request, exc: Exception):
-    # Never leak stack traces to client in production
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "An unexpected error occurred. Please contact system support."}
-    )
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

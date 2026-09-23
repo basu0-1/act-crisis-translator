@@ -1,0 +1,24 @@
+{
+  "id": "ALERT-FLD-2026-0891",
+  "hazard_type": "flood",
+  "severity": "high",
+  "certainty": "likely",
+  "headline": "CRITICAL FLASH FLOOD WARNING: Yamuna Basin Sector 4",
+  "description": "Rapid water level rise detected along northern and eastern riverfront zones. Immediate low-lying evacuation ordered for vulnerable populations.",
+  "lat": 28.6139,
+  "lng": 77.2090,
+  "radius_km": 5.0,
+  "time_to_impact_minutes": 32,
+  "required_action": "evacuate",
+  "source_level": 1,
+  "provenance": {
+    "source_name": "National Disaster Management Authority (NDMA) & Central Water Commission",
+    "source_level": 1,
+    "timestamp": "2026-09-02T10:15:00Z",
+    "confidence": 0.98,
+    "verified": true,
+    "source_url": "https://ndma.gov.in/alerts/FLD-2026-0891"
+  },
+  "created_at": "2026-09-02T10:15:00Z",
+  "active": true
+}

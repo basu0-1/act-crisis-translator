@@ -1,0 +1,54 @@
+[
+  {
+    "id": "SHELTER_A",
+    "name": "Shelter A (North Community Center)",
+    "type": "shelter",
+    "lat": 28.6250,
+    "lng": 77.2000,
+    "capacity": 250,
+    "current_occupancy": 210,
+    "status": "open",
+    "is_accessible": true,
+    "updated_at": "10:12:00 UTC",
+    "address": "14 North Riverbank Road, Sector 3"
+  },
+  {
+    "id": "SHELTER_B",
+    "name": "Shelter B (Highland Safe Haven)",
+    "type": "shelter",
+    "lat": 28.6300,
+    "lng": 77.2150,
+    "capacity": 400,
+    "current_occupancy": 120,
+    "status": "open",
+    "is_accessible": true,
+    "updated_at": "10:14:00 UTC",
+    "address": "88 Highland Ridge Avenue, Elevated Zone"
+  },
+  {
+    "id": "SHELTER_C",
+    "name": "Shelter C (Ridge Heights Secondary Facility)",
+    "type": "shelter",
+    "lat": 28.6400,
+    "lng": 77.2250,
+    "capacity": 300,
+    "current_occupancy": 45,
+    "status": "open",
+    "is_accessible": true,
+    "updated_at": "10:10:00 UTC",
+    "address": "102 Ridge Heights Campus"
+  },
+  {
+    "id": "HOSPITAL_1",
+    "name": "City General Emergency Medical Hospital",
+    "type": "hospital",
+    "lat": 28.6200,
+    "lng": 77.2300,
+    "capacity": 150,
+    "current_occupancy": 90,
+    "status": "open",
+    "is_accessible": true,
+    "updated_at": "10:15:00 UTC",
+    "address": "55 Civic Medical Complex"
+  }
+]

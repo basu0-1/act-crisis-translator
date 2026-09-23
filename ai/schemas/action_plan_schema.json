@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ActionPlan",
+  "type": "object",
+  "required": ["plan_id", "timestamp", "language", "hazard", "risk_score", "risk_level", "now", "next", "avoid", "if_then"],
+  "properties": {
+    "plan_id": { "type": "string" },
+    "timestamp": { "type": "string" },
+    "language": { "type": "string", "enum": ["en", "hi", "ja"] },
+    "hazard": { "type": "string" },
+    "risk_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "risk_level": { "type": "string" },
+    "action_window_minutes": { "type": "integer" },
+    "destination_shelter": { "type": "string" },
+    "route_summary": { "type": "string" },
+    "now": { "type": "array", "items": { "type": "string" } },
+    "next": { "type": "array", "items": { "type": "string" } },
+    "avoid": { "type": "array", "items": { "type": "string" } },
+    "if_then": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition", "action", "trigger_event"],
+        "properties": {
+          "condition": { "type": "string" },
+          "action": { "type": "string" },
+          "trigger_event": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.2090, 28.6139]
+      },
+      "properties": {
+        "id": "USER_HOME",
+        "name": "User Residence",
+        "type": "user"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.2150, 28.6300]
+      },
+      "properties": {
+        "id": "SHELTER_B",
+        "name": "Shelter B (Highland Safe Haven)",
+        "type": "shelter",
+        "capacity": 400,
+        "occupancy": 120
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[77.2090, 28.6139], [77.2120, 28.6220], [77.2150, 28.6300]]
+      },
+      "properties": {
+        "id": "R3",
+        "name": "Highland Boulevard (Route C)",
+        "status": "safe",
+        "accessible": true
+      }
+    }
+  ]
+}

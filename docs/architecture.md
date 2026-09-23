@@ -1,74 +1,131 @@
-# System Architecture — ACT (Actionable Crisis Translator)
+# ACT System Architecture & Engineering Design (v1.1.0)
 
-"Turn emergency information into clear personal decisions."
+> **Actionable Crisis Translator — Emergency Decision-Support Platform**
 
 ---
 
-## 1. Architectural Philosophy
+## 1. High-Level System Architecture
 
-During life-threatening crises, victims and dispatchers are inundated with technical advisories (meteorological coordinates, rainfall volume, river cresting stats) that fail to answer immediate personal questions:
-1. **What is happening?**
-2. **How does it affect me?**
-3. **What should I do NOW?**
-4. **What should I do NEXT?**
-5. **What should I AVOID?**
-6. **What should I do IF the situation changes?**
+ACT follows a strict decoupling between **Data Ingestion**, **Deterministic Rule Engines**, an **Agentic Decision Pipeline**, and a **Reactive Web Client**.
 
-ACT bridges this critical gap by acting as an **actionable crisis decision-support compiler**. It ingests raw emergency data, correlates it with the user's specific location and mobility constraints, and outputs clear, sequential directives, topological safe routes, and verified shelter targets.
+```mermaid
+graph TB
+    subgraph INGESTION["1. Multi-Source Ingestion & Provenance"]
+        CAP["CAP / NDMA Official Alerts\n(Level 1)"]
+        SENSORS["Hydrological & Seismic Sensors\n(Level 2)"]
+        RESPONDERS["Field Responders\n(Level 3)"]
+        CROWD["Crowdsourced Reports\n(Level 4)"]
+    end
 
+    subgraph SECURITY["2. Persistence & RBAC Security Layer"]
+        AUTH["FastAPI Auth & PyJWT\n(HS256)"]
+        DB[(SQLAlchemy ORM\nPostgreSQL / SQLite)]
+        AUDIT["Audit Ledger\n(Immutable Security Log)"]
+    end
+
+    subgraph ENGINES["3. Deterministic Decision Engines (Zero-Hallucination)"]
+        AE["Alert Engine\n(Hierarchy Conflict Resolver)"]
+        RE["Risk Engine\n(Multi-Factor Personal Risk)"]
+        RO["Route Engine\n(NetworkX Dijkstra & Barrier Filter)"]
+        DE["Decision Engine\n(Verified Fact Assembly)"]
+    end
+
+    subgraph AGENTS["4. 5-Agent Collaborative AI Pipeline"]
+        A1["Agent 1: Alert Analyst"]
+        A2["Agent 2: Risk Analyst"]
+        A3["Agent 3: Route Analyst"]
+        A4["Agent 4: Action Planner"]
+        A5["Agent 5: Communication Agent"]
+    end
+
+    subgraph CLIENT["5. Next.js 14 Client Experience"]
+        LANDING["Landing Page (Screenshot Spec)"]
+        DASH["7-Step Decision Dashboard"]
+        MAP["Vector Tactical Evacuation Map"]
+        SIM["Interactive Roadblock Drawer"]
+    end
+
+    INGESTION --> AE
+    SECURITY <--> ENGINES
+    AE --> RE
+    RE --> RO
+    RO --> DE
+    DE --> AGENTS
+    AGENTS --> CLIENT
 ```
-EXTERNAL EMERGENCY SOURCE (Government / Meteorological / Civil Protection)
-                                ↓
-                         DATA INGESTION
-                                ↓
-                     VERIFICATION & PROVENANCE
-                                ↓
-                      DATABASE (PostgreSQL 16)
-                                ↓
-                    ACT DECISION & RISK ENGINE
-         ┌──────────────────────┼──────────────────────┐
-         ▼                      ▼                      ▼
-  PERSONALIZED RISK       DO NOW / NEXT         MOBILITY-AWARE
-  EVALUATION (0-100)      & AVOID PLANS         SAFE ROUTE & SHELTER
-         │                      │                      │
-         └──────────────────────┼──────────────────────┘
-                                │
-                                ▼
-                   REACT / NEXT.JS DASHBOARD
-           (Interactive Map, Audio Chimes, Offline Cache)
+
+---
+
+## 2. 4-Tier Source Hierarchy & Conflict Resolution
+
+Emergency situations frequently suffer from conflicting alerts (e.g., social media reports claiming water has receded while civil defense has ordered an evacuation). ACT resolves this using a strict trust priority ladder:
+
+```mermaid
+flowchart TD
+    A["Incoming Emergency Reports"] --> B{"Conflict Detected?"}
+    B -- No --> C["Direct Processing"]
+    B -- Yes --> D["Compare Source Trust Levels"]
+    
+    D --> E["Level 1: Official Emergency Authorities\n(NDMA, IMD, USGS, Civil Defense)\nConfidence: 0.98 | Absolute Authority"]
+    D --> F["Level 2: Trusted Infrastructure\n(Automated River Gauges, Seismic Sensors)\nConfidence: 0.90"]
+    D --> G["Level 3: Verified On-Ground Responders\n(Red Cross, Fire Dispatch, Police Units)\nConfidence: 0.80"]
+    D --> H["Level 4: Crowdsourced / Citizen Reports\n(Unconfirmed Social Posts)\nConfidence: 0.45 | Provisional"]
+
+    E --> I["Higher Level Automatically Overrides Lower Level"]
+    F --> I
+    G --> I
+    H --> I
+    I --> J{"Tiebreak on Same Level?"}
+    J --> K["Latest Timestamp + Higher Confidence Score Wins"]
+    K --> L["Output Verified Alert to Engines"]
 ```
 
 ---
 
-## 2. Core Components
+## 3. Dynamic Roadblock & Route Recalculation Flow
 
-### 2.1 Backend (FastAPI + SQLAlchemy 2.0)
-- **Framework**: Python 3.11+ / 3.14 with FastAPI for async high-concurrency API performance.
-- **ORM & Data Layer**: SQLAlchemy 2.0 declarative models supporting PostgreSQL for production and zero-configuration SQLite for development.
-- **Auth & RBAC**: Stateless JWT with HttpOnly Secure cookies and Bearer token fallback. Role-Based Access Control distinguishing `END_USER` from authoritative `ADMIN`.
-- **Decision Engine**:
-  - `RiskEngine`: Computes multi-factor risk scores considering emergency severity, hazard centroid proximity, urgency time-to-impact, and user mobility penalty (+15 for wheelchair, +10 for limited walking).
-  - `RouteEngine`: Mobility-aware path calculation avoiding steep grades and low-lying flood planes. Supports instant dynamic recalculation upon road blockage detection.
-  - `ActionPlanService`: Generates tiered action statements (DO NOW, NEXT, AVOID, IF -> THEN).
+When an active evacuation route becomes obstructed (e.g., flash flood inundating Highland Boulevard), ACT executes instant real-time graph recalculation without application crashes:
 
-### 2.2 Frontend (Next.js 14 App Router + Tailwind CSS)
-- **Framework**: React 18, TypeScript, Tailwind CSS.
-- **Navigation & Mapping**: OpenStreetMap Leaflet / MapLibre compatible interface with an offline topological vector SVG fallback.
-- **Multilingual Support**: Real-time translation dictionary for English (`en`), Hindi (`hi`), and Japanese (`ja`).
-- **Resilient Offline Mode**: Automatic detection of network disconnection, retrieving verified emergency packages from `localStorage` sandbox with exact verification timestamps.
+```mermaid
+stateDiagram-v2
+    [*] --> PrimaryRouteActive: System Initialized
+    PrimaryRouteActive --> RoadblockDetected: Flooding or Obstruction Event (R3)
+    
+    state RoadblockDetected {
+        [*] --> InvalidateEdge: Mark Road R3 as BLOCKED
+        InvalidateEdge --> ExcludeBarriers: Filter Out Inaccessible Roads (Stairs for Wheelchairs)
+        ExcludeBarriers --> GraphSearch: NetworkX Dijkstra Shortest Weighted Path
+        GraphSearch --> AssignShelter: Re-route to Alternative Shelter (Shelter C)
+    }
+    
+    RoadblockDetected --> RecalculatedRouteReady: Alternative Safe Haven Found
+    RoadblockDetected --> FailSafeTriggered: All Paths Inundated / Blocked
+    
+    RecalculatedRouteReady --> UpdateActionPlan: Hero Actions updated to DO NOW: Divert
+    FailSafeTriggered --> VerticalRefuge: Issue Shelter-in-Place & Signal Distress
+```
 
 ---
 
-## 3. Dynamic Route Recalculation Lifecycle
+## 4. Multi-Emergency Risk Model
 
-When an active corridor (such as **Riverside Road Bridge**) is compromised:
-1. **Event Detection**: An official dispatcher, automated sensor, or admin triggers a blockage event.
-2. **Backend Mutation**: The active route is marked `is_blocked = True`, and a `RouteEvent` is persisted with coordinates and reason.
-3. **Engine Recalculation**:
-   - Primary route shifts from the lowland river path to the elevated **Ridge Avenue bypass (+25m elevation)**.
-   - Destination shelter is re-evaluated to the highest-ground safe haven (**Highland Crest Haven**).
-   - Estimated transit time is recalculated based on incline and mobility profile.
-4. **Action Plan Adaptation**:
-   - `DO NOW`: Changes from bag preparation to *"ABANDON Riverside Road immediately. Shift trajectory West toward Ridge Avenue."*
-   - `IF -> THEN`: Activates active contingency branch.
-5. **Client Broadcast**: The dashboard instantly updates the map, alerts the user with audible urgency, and displays the recalculated route without page reload.
+The prototype decision-support score is calculated transparently using an explainable multi-factor formula:
+
+$$\text{Composite Score} = (0.35 \times S) + (0.25 \times E) + (0.25 \times V) + (0.15 \times T)$$
+
+Where:
+- **$S$ (Severity Factor)**: Extreme ($1.0$), High ($0.85$), Medium ($0.50$), Low ($0.25$).
+- **$E$ (Exposure Factor)**: Haversine distance from epicenter vs hazard radius. Conservative fallback ($0.60$) if spatial boundaries are unverified.
+- **$V$ (Vulnerability Factor)**:
+  - Mobility: Wheelchair ($0.95$), Limited Walking ($0.80$), Normal ($0.50$).
+  - Transport: Walking ($0.85$), Bicycle ($0.65$), Transit ($0.60$), Car ($0.40$).
+  - Hazard Modifiers: Inhalation risk in Wildfire ($+0.10$), Heat stress in Extreme Heat ($+0.12$), High wind exposure in Cyclone ($+0.10$).
+- **$T$ (Time Pressure Factor)**: Time to impact remaining ($<15$ mins = $1.0$, $<30$ mins = $0.85$, etc.).
+
+---
+
+## 5. Fail-Safe Missing Information Handling
+
+In accordance with strict life-safety design guidelines:
+1. **Never Hallucinate**: If road network data, shelter status, or GPS telemetry is unavailable, ACT explicitly displays `"Information unavailable."` and sets `failsafe_status="⚠️ INSUFFICIENT INFORMATION"`.
+2. **Defensive Guidance**: When no safe ground route can be mathematically guaranteed, the platform instructs citizens to cease lowland transit, seek upper-level vertical refuge inside the nearest sturdy building, and signal distress to official responders.

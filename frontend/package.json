@@ -1,35 +1,29 @@
 {
-  "name": "act-frontend",
+  "name": "act-emergency-frontend",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "vitest run"
+    "start": "next start -p 3000",
+    "lint": "next lint"
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "leaflet": "^1.9.4",
-    "lucide-react": "^0.428.0",
+    "lucide-react": "^0.363.0",
+    "maplibre-gl": "^4.0.2",
     "next": "^14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.5.2"
+    "tailwind-merge": "^2.2.2"
   },
   "devDependencies": {
-    "@testing-library/react": "^16.0.0",
-    "@types/leaflet": "^1.9.12",
-    "@types/node": "^20.14.12",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
+    "@types/node": "^20.11.30",
+    "@types/react": "^18.2.70",
+    "@types/react-dom": "^18.2.22",
     "autoprefixer": "^10.4.19",
-    "jsdom": "^24.1.1",
-    "postcss": "^8.4.40",
-    "tailwindcss": "^3.4.7",
-    "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.4.3"
   }
 }

@@ -1,15 +1,8 @@
-from app.models.models import (
-    Base, User, UserProfile, UserPreferences, AlertSource,
-    EmergencyAlert, Shelter, RiskAssessment, Route, RouteEvent,
-    ActionPlan, DemoScenario, AuditLog, SystemEvent,
-    UserRole, MobilityTier, LanguageCode, EmergencyType,
-    SeverityLevel, CertaintyLevel, DataStatus, RiskLevel, ShelterStatus
-)
+﻿"""
+Models export
+"""
+from app.models.user import User
+from app.models.alert import EmergencyAlert
+from app.models.infrastructure import ShelterEntity, RoadEntity, AuditLog
 
-__all__ = [
-    "Base", "User", "UserProfile", "UserPreferences", "AlertSource",
-    "EmergencyAlert", "Shelter", "RiskAssessment", "Route", "RouteEvent",
-    "ActionPlan", "DemoScenario", "AuditLog", "SystemEvent",
-    "UserRole", "MobilityTier", "LanguageCode", "EmergencyType",
-    "SeverityLevel", "CertaintyLevel", "DataStatus", "RiskLevel", "ShelterStatus"
-]
+__all__ = ["User", "EmergencyAlert", "ShelterEntity", "RoadEntity", "AuditLog"]

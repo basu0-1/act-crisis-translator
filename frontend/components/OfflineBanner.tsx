@@ -1,28 +1,31 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { WifiOff, Clock, AlertCircle } from 'lucide-react';
-import { useOffline } from '@/hooks/useOffline';
-import { OfflineStorage } from '@/lib/offline';
+import React from "react";
+import { WifiOff, ShieldAlert, Clock } from "lucide-react";
 
-export default function OfflineBanner() {
-  const { isOffline, cachedTimestamp } = useOffline();
+interface OfflineBannerProps {
+  isOffline: boolean;
+  cachedTimestamp?: string;
+}
 
+export const OfflineBanner: React.FC<OfflineBannerProps> = ({ isOffline, cachedTimestamp }) => {
   if (!isOffline) return null;
 
   return (
-    <aside
-      aria-label="Offline status banner"
-      className="bg-amber-500 text-slate-950 px-4 py-2.5 shadow-md flex flex-wrap items-center justify-between text-xs font-semibold"
-    >
-      <div className="flex items-center space-x-2">
-        <WifiOff className="w-4 h-4 text-slate-950 animate-pulse" />
-        <span>OFFLINE MODE — Network disconnected. Displaying locally cached emergency plan.</span>
+    <div className="bg-amber-500/15 border-b border-amber-500/40 text-amber-200 px-4 py-2.5 shadow-inner">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs sm:text-sm">
+        <div className="flex items-center space-x-2">
+          <WifiOff className="h-4 w-4 text-amber-400 flex-shrink-0 animate-bounce" />
+          <span className="font-bold text-amber-300 uppercase tracking-wide">CONNECTION LOST</span>
+          <span className="text-slate-300">
+            — Showing last verified emergency action plan. Real-time updates paused.
+          </span>
+        </div>
+        <div className="flex items-center space-x-1.5 text-xs text-amber-400 font-mono bg-amber-950/60 px-2.5 py-1 rounded border border-amber-500/30">
+          <Clock className="h-3.5 w-3.5" />
+          <span>Last Verified: {cachedTimestamp ? new Date(cachedTimestamp).toLocaleTimeString() : "2 mins ago"}</span>
+        </div>
       </div>
-      <div className="flex items-center space-x-1.5 mt-1 sm:mt-0 font-mono text-[11px] bg-amber-600/30 px-2 py-0.5 rounded">
-        <Clock className="w-3.5 h-3.5" />
-        <span>{OfflineStorage.formatCachedTime(cachedTimestamp)}</span>
-      </div>
-    </aside>
+    </div>
   );
-}
+};

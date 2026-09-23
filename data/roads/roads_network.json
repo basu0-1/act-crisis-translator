@@ -1,0 +1,68 @@
+[
+  {
+    "id": "R1",
+    "name": "North Avenue",
+    "start_node": "USER_HOME",
+    "end_node": "JUNCTION_NORTH",
+    "status": "safe",
+    "risk_level": 0.15,
+    "accessible_wheelchair": true,
+    "has_stairs": false,
+    "travel_time_minutes": 8
+  },
+  {
+    "id": "R2",
+    "name": "Riverside Road",
+    "start_node": "JUNCTION_NORTH",
+    "end_node": "SHELTER_A",
+    "status": "flooded",
+    "risk_level": 0.90,
+    "accessible_wheelchair": true,
+    "has_stairs": false,
+    "travel_time_minutes": 10
+  },
+  {
+    "id": "R3",
+    "name": "Highland Boulevard (Route C)",
+    "start_node": "USER_HOME",
+    "end_node": "SHELTER_B",
+    "status": "safe",
+    "risk_level": 0.20,
+    "accessible_wheelchair": true,
+    "has_stairs": false,
+    "travel_time_minutes": 14
+  },
+  {
+    "id": "R4",
+    "name": "Central Expressway",
+    "start_node": "USER_HOME",
+    "end_node": "JUNCTION_EAST",
+    "status": "congested",
+    "risk_level": 0.60,
+    "accessible_wheelchair": false,
+    "has_stairs": false,
+    "travel_time_minutes": 22
+  },
+  {
+    "id": "R5",
+    "name": "Old Town Stairway Path",
+    "start_node": "JUNCTION_NORTH",
+    "end_node": "SHELTER_B",
+    "status": "inaccessible",
+    "risk_level": 0.45,
+    "accessible_wheelchair": false,
+    "has_stairs": true,
+    "travel_time_minutes": 6
+  },
+  {
+    "id": "R6",
+    "name": "Ridge Connector (Route D)",
+    "start_node": "USER_HOME",
+    "end_node": "SHELTER_C",
+    "status": "safe",
+    "risk_level": 0.25,
+    "accessible_wheelchair": true,
+    "has_stairs": false,
+    "travel_time_minutes": 16
+  }
+]

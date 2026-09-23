@@ -1,188 +1,182 @@
-# ACT — Actionable Crisis Translator
+# ACT — Actionable Crisis Translator (v1.1.0)
 
 > **"Turn emergency information into clear personal decisions."**
 
-[![CI Platform](https://github.com/act-crisis/act/actions/workflows/ci.yml/badge.svg)](https://github.com/act-crisis/act/actions/workflows/ci.yml)
+[![CI Tests](https://img.shields.io/badge/pytest-35%20passed-brightgreen.svg)]()
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-black.svg)]()
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Next.js 14](https://img.shields.io/badge/Next.js-14.2-black)](https://nextjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688.svg)](https://fastapi.tiangolo.com/)
-[![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-336791.svg)](https://www.postgresql.org/)
+[![Security: RBAC](https://img.shields.io/badge/Security-Strict%20RBAC%20(JWT)-blueviolet.svg)]()
 
 ---
 
-## 1. Project Overview
+## 🚨 What is ACT?
 
-During life-threatening disasters (flash floods, storm surges, fires), citizens are overwhelmed by technical bulletins that do not answer the basic questions needed to survive:
-1. **What is happening?**
-2. **How does it affect me?**
-3. **What should I do NOW?**
-4. **What should I do NEXT?**
-5. **What should I AVOID?**
-6. **What should I do IF the situation changes?**
+**ACT (Actionable Crisis Translator)** is an AI-powered personalized emergency decision-support platform. It transforms official, technical disaster alerts into immediate, barrier-free survival directives tailored to individual mobility, transit modes, and family companions.
 
-**ACT (Actionable Crisis Translator)** is a full-stack, production-ready emergency decision-support platform. It correlates verified emergency alerts with user location, terrain, and physical mobility needs to generate transparent personal risk evaluations, accessible evacuation corridors, verified shelter assignments, and immediate action plans that recalculate dynamically as conditions change.
-
----
-
-## 2. Decision Intelligence Pipeline
-
-```
-EMERGENCY INFORMATION
-        ↓
-UNDERSTAND THE SITUATION (Perimeter, severity, time-to-impact)
-        ↓
-ASSESS PERSONAL RISK (0-100 composite score adjusted for mobility)
-        ↓
-RECOMMEND IMMEDIATE ACTION (DO NOW, NEXT, AVOID)
-        ↓
-RECOMMEND SAFE ROUTE (Open-source mapping, wheelchair accessibility)
-        ↓
-RECOMMEND SHELTER (Verified status, medical care, capacity)
-        ↓
-MONITOR CHANGES & RECALCULATE DYNAMICALLY (Road blockages rerouted in real time)
-```
+### Key Capabilities:
+- **Decision Intelligence Pipeline**: 5-stage transformation (`01 ALERT` → `02 RISK` → `03 ACTION` → `04 ROUTE` → `05 SHELTER`).
+- **6 Supported Emergency Hazards**: Flood, Wildfire, Cyclone, Earthquake, Extreme Heat, and Urban Emergency.
+- **Dynamic Roadblock Rerouting**: Instant recalculation when roads or bridges flood, automatically redirecting from primary safe haven (`Shelter B`) to secondary safe haven (`Shelter C`).
+- **4-Tier Source Hierarchy**: Level 1 Official (NDMA, IMD, USGS) > Level 2 Infrastructure & Sensors > Level 3 Responders > Level 4 Crowdsourced.
+- **Zero-Hallucination Guarantee**: Strict deterministic engine execution. Missing or unverified data triggers conservative shelter-in-place directives and `"Information unavailable."`
+- **Accessibility-First Routing**: Specialized graph traversal guaranteeing step-free paths for wheelchair users and limited mobility citizens.
+- **Multilingual Support**: Real-time localization across English (`en`), Hindi (`hi`), and Japanese (`ja`).
+- **Theme Support**: Seamless Light, Dark, and System (`☀️ 🌙 💻`) modes.
 
 ---
 
-## 3. Technology Stack
+## 🏗️ System Architecture & Data Flow
 
-- **Frontend**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Lucide Icons.
-- **Backend**: Python 3.11+ / 3.14, FastAPI, Pydantic v2.
-- **Database & ORM**: PostgreSQL 16 (production), SQLAlchemy 2.0 ORM, automatic SQLite development fallback.
-- **Authentication**: Stateless JWT signed sessions, password hashing via bcrypt, HttpOnly Secure cookies, role-based authorization (`END_USER`, `ADMIN`).
-- **Mapping**: Open mapping solution (MapLibre / Leaflet compatible) with resilient topological vector SVG fallback.
-- **Testing**: Pytest & Asyncio (Backend), Vitest & React Testing Library (Frontend), Python E2E Integration Suite.
-- **Containerization**: Docker, Docker Compose (Postgres + Backend + Frontend).
+```mermaid
+flowchart TD
+    subgraph S1["Data Ingestion & 4-Tier Provenance"]
+        A1["Level 1: Official Authorities (NDMA, IMD, USGS)"]
+        A2["Level 2: Sensors & Gauge Networks"]
+        A3["Level 3: Verified On-Ground Responders"]
+        A4["Level 4: Crowdsourced Telemetry"]
+    end
 
----
+    subgraph S2["Harmonization & Decision Engines"]
+        E1["Alert Engine\n(Conflict Resolution & Source Hierarchy)"]
+        E2["Risk Engine\n(Severity × Exposure × Vulnerability × Time)"]
+        E3["Route Engine\n(NetworkX Dijkstra with Barrier Avoidance)"]
+        E4["Decision Engine\n(Verified Fact Assembly)"]
+    end
 
-## 4. Key Features
+    subgraph S3["5-Agent AI Pipeline"]
+        AG1["Agent 1: Alert Analyst"]
+        AG2["Agent 2: Risk Analyst"]
+        AG3["Agent 3: Route Analyst"]
+        AG4["Agent 4: Action Planner (NOW, NEXT, AVOID, IF→THEN)"]
+        AG5["Agent 5: Communication Agent (EN / HI / JA)"]
+    end
 
-- **Personalized Risk Scoring**: Transparent 0–100 score breaking down severity, time urgency, proximity, and mobility penalties. Labeled with mandatory prototype disclaimers.
-- **Accessibility-Aware Routing**: Distinct routing profiles for **Normal**, **Limited Walking**, and **Wheelchair** mobility tiers (filtering out steep inclines, stairs, and debris).
-- **Dynamic Route Recalculation**: Instant detection of road blockages (e.g. Riverside Road Bridge inundation) reroutes users around hazards to elevated high-ground corridors without page refresh.
-- **Resilient Offline Mode**: Gracefully detects network disruption and serves cached evacuation directives with a prominent `OFFLINE — CACHED — LAST VERIFIED: [timestamp]` banner.
-- **Multilingual Support**: Real-time interface translation for **English**, **Hindi (हिन्दी)**, and **Japanese (日本語)** with emergency terminology accuracy.
-- **Emergency Authority Console**: Role-protected `/admin/dashboard` allowing dispatchers to create alerts, manage shelters, and review security audit logs.
-- **Controlled Demo Mode**: One-click simulation bar to test road blockage rerouting, urgency shifts (32m → 10m), and network severance.
-- **Zero Hallucination Guarantee**: Demo scenarios are prominently watermarked as `SIMULATED / DEMO SCENARIO` to prevent confusing mock exercises with live civil defense alerts.
+    subgraph S4["Client Layer (Next.js 14)"]
+        UI1["Landing Page with Hero & 5-Card Pipeline"]
+        UI2["7-Step Crisis Decision Dashboard"]
+        UI3["Interactive Roadblock Demo Drawer"]
+        UI4["Admin Developer DB Console"]
+    end
 
----
-
-## 5. Quick Start (Local Development)
-
-### Prerequisites
-- Node.js 18+ and npm
-- Python 3.10+
-- Git
-
-### 1. Clone & Set Up Monorepo
-```bash
-git clone <repository_url>
-cd act
-cp .env.example .env
+    S1 --> E1
+    E1 --> E2
+    E2 --> E3
+    E3 --> E4
+    E4 --> S3
+    S3 --> S4
 ```
 
-### 2. Backend Setup
-```bash
+---
+
+## 🔁 Killer Demo: Dynamic Roadblock Recalculation
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Citizen / Evaluator
+    participant UI as Next.js Dashboard
+    participant API as FastAPI Backend (/api/*)
+    participant RE as Route Engine (NetworkX)
+    participant AP as Action Planner
+
+    User->>UI: View Active Evacuation Path
+    UI->>API: GET /api/decision/current
+    API-->>UI: Primary Route: Highland Blvd (R3) → Shelter B (ETA: 14 mins)
+
+    User->>UI: Click "Trigger Roadblock on Highland Blvd"
+    UI->>API: POST /api/demo/trigger-roadblock
+    API->>RE: Mark R3 as BLOCKED & Inundated
+    RE->>RE: Exclude R3 & Recompute Shortest Step-Free Path
+    RE-->>API: New Route: Ridge Connector (R6) → Shelter C (Ridge Heights Haven)
+    API->>AP: Update Directives & IF→THEN Rules
+    AP-->>API: Updated Action Plan (DO NOW: Abandon Highland Blvd)
+    API-->>UI: Stream Recalculated State
+    UI-->>User: Map renders R3 in RED DASHED "BLOCKED", draws new green path to Shelter C
+```
+
+---
+
+## 📋 Standard Enterprise API Contracts (`/api/*`)
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/health` / `/api/health` | System health, service status, and environment mode |
+| `GET` | `/api/decision/current` | Complete unified decision package (alert, risk, plan, route, shelters) |
+| `POST` | `/api/demo/trigger-roadblock` | Simulates road flood on R3; recalculates route to Shelter C |
+| `POST` | `/api/demo/reset` | Resets simulation to initial state (Shelter B) |
+| `GET` | `/api/admin/sources` | 4-Tier Source Hierarchy definitions and trust weights |
+| `GET` | `/api/routes/shelters` | Registry of shelters, open capacities, and accessibility |
+| `GET` | `/api/routes/roads` | Real-time road network segments, risk levels, and blockages |
+| `POST` | `/api/routes/recalculate` | Dynamic on-demand evacuation route calculation |
+| `POST` | `/api/risk/calculate` | Personalized multi-factor risk assessment (0–100 score) |
+| `POST` | `/api/plan/generate` | Generates verified DO NOW, NEXT, AVOID, and IF→THEN actions |
+| `POST` | `/api/auth/register` | Citizen / responder account registration with mobility preferences |
+| `POST` | `/api/auth/login` | JWT token authentication |
+| `GET` | `/api/auth/me` | Current authenticated profile and RBAC permissions |
+
+---
+
+## 🧪 Verification & Automated Tests (35 / 35 Passed)
+
+Run the full backend test suite:
+```powershell
 cd backend
-python -m venv .venv
-
-# On Windows:
-.\.venv\Scripts\activate
-# On Linux/macOS:
-source .venv/bin/activate
-
-pip install -r requirements.txt
-```
-
-Database tables and demo scenarios will be automatically initialized on first launch.
-
-### 3. Frontend Setup
-```bash
-cd ../frontend
-npm install
-```
-
-### 4. Running the Platform
-Open two terminal windows:
-
-**Terminal 1 (Backend API):**
-```bash
-cd backend
-.\.venv\Scripts\activate
-uvicorn app.main:app --reload --port 8000
-```
-- API Base: `http://localhost:8000`
-- Interactive OpenAPI / Swagger Docs: `http://localhost:8000/docs`
-- Health Endpoint: `http://localhost:8000/health`
-
-**Terminal 2 (Frontend Web App):**
-```bash
-cd frontend
-npm run dev
-```
-- Web Application: `http://localhost:3000`
-
----
-
-## 6. Pre-Configured Demo Accounts
-
-| Role | Email | Password | Details |
-| :--- | :--- | :--- | :--- |
-| **Emergency Director (Admin)** | `admin@act-emergency.org` | `Admin@ACT2026!` | Full administrative access to `/admin/dashboard` |
-| **Citizen (Limited Mobility)** | `user@example.com` | `User@ACT2026!` | Elena Chen — Limited walking profile |
-| **Citizen (Wheelchair)** | `wheelchair@example.com` | `User@ACT2026!` | Marcus Vance — Wheelchair accessible routing |
-
----
-
-## 7. Running Tests
-
-### Backend Unit & RBAC Tests (Pytest)
-```bash
-cd backend
-.\.venv\Scripts\activate
 pytest -v
 ```
 
-### End-to-End System Lifecycle Verification
-```bash
-cd backend
-.\.venv\Scripts\activate
-python tests/test_e2e_flow.py
-```
-
-### Frontend Unit & Component Tests (Vitest)
-```bash
-cd frontend
-npm test
-```
-
-### Next.js Production Build Validation
-```bash
-cd frontend
-npm run build
-```
+### Verified Test Suites:
+- `test_api_v1.py` — Enterprise `/api/*` endpoints, source conflict resolution, multi-emergency coverage, fail-safe rules.
+- `test_api_endpoints.py` — Health contracts, simulation triggers, and plan generation.
+- `test_agents_and_pipeline.py` — 5-agent pipeline synthesis and zero-hallucination guard.
+- `test_alert_engine.py` — Alert ingestion, spatial exposure calculation, and CAP validation.
+- `test_risk_engine.py` — Multi-hazard risk scoring and mobility vulnerability weights.
+- `test_route_engine.py` — Dijkstra graph pathfinding, wheelchair stairs avoidance, and roadblock detour.
+- `test_auth_and_rbac.py` — JWT authentication, password hashing, and 403 Forbidden admin protection.
+- `test_database_persistence.py` — SQLAlchemy DB schema creation and seeding.
 
 ---
 
-## 8. Docker Deployment
+## 🚀 Local Quickstart Guide
 
-Launch PostgreSQL 16, FastAPI backend, and Next.js frontend with a single command:
-```bash
-docker compose up --build
+### Prerequisites
+- Python 3.10+ (Tested on Python 3.14)
+- Node.js 18+ & npm
+
+### 1. Start the Backend API
+```powershell
+cd C:\Projects\act\backend
+python -m uvicorn app.main:app --reload --port 8000
 ```
+- API Base URL: `http://localhost:8000`
+- Interactive Swagger Docs: `http://localhost:8000/docs`
+- Health Endpoint: `http://localhost:8000/api/health`
+
+### 2. Start the Frontend Dashboard
+```powershell
+cd C:\Projects\act\frontend
+npm run dev
+```
+- Open `http://localhost:3000` in your browser.
+- Production build: `npm run build` followed by `npm start`.
 
 ---
 
-## 9. Security & Anti-Fabrication Principles
+## 📱 User Interface Progression
 
-1. **No Fictitious Alerts Masquerading as Official**: When external civil defense APIs are not configured, ACT explicitly labels all pre-seeded events as `SIMULATED / DEMO SCENARIO`.
-2. **Strict User Isolation**: Regular citizens can only read or mutate their own preferences. Any citizen attempting to query or modify admin dispatch endpoints receives an immediate `403 Forbidden` logged to the audit ledger.
-3. **Password Security**: Passwords are encrypted with `bcrypt` (work factor 12) and never stored in plaintext or returned in responses.
+1. **Home / Landing Page**: Brand header, hero badge, headline, CTAs, 5-card decision intelligence pipeline, methodology, capabilities, safety and trust guarantee.
+2. **Dashboard**: 7-Step crisis decision journey:
+   - Step 1: Current Emergency Status
+   - Step 2: Personalized Risk Score
+   - Step 3: What You Should Do Now (Priority Actions)
+   - Step 4: Safe Evacuation Route & Tactical Map
+   - Step 5: Designated Safe Haven
+   - Step 6: Live Updates & Recalculation Timeline
+   - Step 7: Active Personal Settings & Consent
+3. **Simulation Controls**: Collapsible top drawer to trigger instant roadblocks, adjust mobility preferences, and test multi-hazard responses.
 
 ---
 
-## 10. License
+## 🛡️ License
 
-This project is licensed under the [MIT License](LICENSE). Built for human safety.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

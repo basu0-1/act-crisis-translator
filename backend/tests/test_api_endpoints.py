@@ -79,3 +79,30 @@ def test_simulation_workflow():
     assert res_lang.status_code == 200
     state3 = res_lang.json()
     assert state3["action_plan"]["language"] == "ja"
+
+
+def test_location_and_situation_selection_are_backend_state_changes():
+    client.post("/simulate/reset")
+
+    location = client.post("/simulate/event", json={
+        "event_type": "location_changed",
+        "latitude": 40.7128,
+        "longitude": -74.0060,
+    })
+    assert location.status_code == 200
+    location_state = location.json()
+    assert location_state["user"]["lat"] == 40.7128
+    assert location_state["user"]["lng"] == -74.0060
+    assert location_state["route_recommendation"]["status"] == "insufficient_info"
+
+    situation = client.post("/simulate/event", json={
+        "event_type": "situation_changed",
+        "hazard_type": "wildfire",
+    })
+    assert situation.status_code == 200
+    situation_state = situation.json()
+    assert situation_state["alert"]["hazard_type"] == "wildfire"
+    assert situation_state["alert"]["provenance"]["verified"] is False
+    assert situation_state["action_plan"]["failsafe_status"] is not None
+
+    client.post("/simulate/reset")

@@ -33,3 +33,24 @@
 - **`GET /route/geojson`**: GeoJSON layers for vector map rendering.
 - **`POST /plan/generate?language={en|hi|ja}`**: Agent 4 & 5 Action plan synthesis.
 - **`POST /simulate/event` & `POST /simulate/reset`**: Scenario simulation machine.
+
+### Simulation event examples
+
+The existing simulation endpoint also accepts:
+
+```json
+{
+	"event_type": "location_changed",
+	"latitude": 28.6139,
+	"longitude": 77.209
+}
+```
+
+```json
+{
+	"event_type": "situation_changed",
+	"hazard_type": "flood"
+}
+```
+
+Location updates recalculate risk and map context. The seeded route network is only considered verified near its seeded origin. Situation types without verified alert data are returned with unverified provenance and the existing fail-safe action plan.

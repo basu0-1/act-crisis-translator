@@ -21,6 +21,23 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+.dashboard-main > section,
+.dashboard-main > div {
+  min-width: 0;
+}
+
+@media (max-width: 639px) {
+  .dashboard-main h2 {
+    line-height: 1.25;
+  }
+
+  .dashboard-main button,
+  .dashboard-main select,
+  .dashboard-main input {
+    min-height: 2.75rem;
+  }
+}
+
 html.light body {
   background-color: #f8fafc;
   color: #0f172a;

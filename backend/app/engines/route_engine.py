@@ -83,6 +83,31 @@ class RouteEngine:
         shelters: List[Shelter],
         user: UserProfile
     ) -> RouteRecommendation:
+        if not roads or not user or not roads[0].coordinates:
+            return RouteRecommendation(
+                recommended_route=None,
+                destination=None,
+                estimated_time_minutes=0,
+                safety_score=0,
+                reasons=["Verified road coordinates are unavailable for the current location"],
+                rejected_routes=[],
+                all_routes=[],
+                status="insufficient_info"
+            )
+
+        origin_lng, origin_lat = roads[0].coordinates[0]
+        if abs(user.lat - origin_lat) > 0.03 or abs(user.lng - origin_lng) > 0.03:
+            return RouteRecommendation(
+                recommended_route=None,
+                destination=None,
+                estimated_time_minutes=0,
+                safety_score=0,
+                reasons=["Verified route coverage is unavailable for the current location"],
+                rejected_routes=[],
+                all_routes=[],
+                status="insufficient_info"
+            )
+
         G, rejected_roads = RouteEngine.build_graph(roads, user)
         start_node = "USER_HOME"
 

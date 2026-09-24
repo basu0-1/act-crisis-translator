@@ -4,6 +4,8 @@ API: Judge Simulation Panel & Real-time State Machine
 from fastapi import APIRouter
 from typing import Dict, Any
 from app.schemas.simulation import SimulationEvent, SimulationState, SimulationEventType
+from app.schemas.route import RouteRecommendation
+from app.schemas.alert import HazardType, SourceLevel, SourceProvenance
 from app.schemas.route import RoadStatus, ShelterStatus
 from app.data.mock_database import db
 from app.agents.risk_analyst import RiskAnalystAgent
@@ -23,7 +25,20 @@ def get_simulation_state():
     shelters = db.get_shelters()
 
     risk = RiskAnalystAgent.analyze(alert, user)
-    route_rec = RouteAnalystAgent.analyze(roads, shelters, user)
+    route_rec = (
+        RouteAnalystAgent.analyze(roads, shelters, user)
+        if alert.provenance.verified
+        else RouteRecommendation(
+            recommended_route=None,
+            destination=None,
+            estimated_time_minutes=0,
+            safety_score=0,
+            reasons=["Verified route data is unavailable for the selected situation"],
+            rejected_routes=[],
+            all_routes=[],
+            status="insufficient_info",
+        )
+    )
     facts = DecisionEngine.build_verified_facts(alert, user, risk, route_rec)
     base_plan = ActionPlannerAgent.generate_plan(facts, alert.provenance, user.language)
     localized_plan = CommunicationAgent.format_and_localize(base_plan, user.language)
@@ -89,6 +104,37 @@ def trigger_simulation_event(event: SimulationEvent):
             user.language = event.language
             db.update_user(user)
             db.last_event = f"🌐 LANGUAGE CHANGED: Active language set to {event.language.value.upper()}."
+
+    elif event.event_type == SimulationEventType.LOCATION_CHANGED:
+        if event.latitude is not None and event.longitude is not None:
+            user = db.get_user()
+            user.lat = event.latitude
+            user.lng = event.longitude
+            db.update_user(user)
+            db.last_event = "📍 LOCATION UPDATED: Risk and map context recalculated for the selected location."
+
+    elif event.event_type == SimulationEventType.SITUATION_CHANGED:
+        if event.hazard_type:
+            alert = db.get_alert()
+            if event.hazard_type == HazardType.FLOOD:
+                from app.data.mock_database import DEFAULT_ALERT
+                import copy
+                db.update_alert(copy.deepcopy(DEFAULT_ALERT))
+            else:
+                alert.hazard_type = event.hazard_type
+                label = event.hazard_type.value.replace("_", " ").title()
+                alert.headline = f"Selected situation: {label}"
+                alert.description = "Verified alert information is unavailable for this selected situation. Follow official emergency instructions."
+                alert.provenance = SourceProvenance(
+                    source_name="User-selected situation",
+                    source_level=SourceLevel.LEVEL_4_UNVERIFIED_USER,
+                    timestamp=alert.provenance.timestamp,
+                    confidence=0.0,
+                    verified=False,
+                )
+                alert.active = False
+                db.update_alert(alert)
+            db.last_event = f"⚠️ SITUATION UPDATED: {event.hazard_type.value.replace('_', ' ').title()} assessment selected."
 
     elif event.event_type == SimulationEventType.SHELTER_UNAVAILABLE:
         shelter_id = event.shelter_id or "SHELTER_B"

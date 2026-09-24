@@ -23,6 +23,13 @@ export const EmergencyAlertCard: React.FC<EmergencyAlertCardProps> = ({
   const t = getTranslation(language);
 
   const getStatusBadge = () => {
+    if (!alert.provenance.verified) {
+      return {
+        label: t.unverifiedData,
+        sub: t.followOfficialInstructions,
+        bg: "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-600/50",
+      };
+    }
     if (isOffline) {
       return {
         label: t.offlineCached,

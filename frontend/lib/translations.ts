@@ -118,6 +118,33 @@ export interface Translations {
   authRequired: string;
   authRequiredDesc: string;
   close: string;
+
+  // Real-user setup
+  situationSetup: string;
+  whereAreYou: string;
+  savedLocation: string;
+  useMyLocation: string;
+  findingLocation: string;
+  locationUnavailable: string;
+  locationPermissionDenied: string;
+  locationUpdated: string;
+  whatsHappening: string;
+  checkSafety: string;
+  checkingSafety: string;
+  floodSituation: string;
+  wildfireSituation: string;
+  cycloneSituation: string;
+  earthquakeSituation: string;
+  extremeHeatSituation: string;
+  urbanEmergencySituation: string;
+  savingSettings: string;
+  settingsSaved: string;
+  settingsSaveFailed: string;
+  saveProfile: string;
+  unverifiedData: string;
+  followOfficialInstructions: string;
+  safeRouteUnavailable: string;
+  youAreHere: string;
 }
 
 export const translations: Record<LanguageType, Translations> = {
@@ -228,7 +255,32 @@ export const translations: Record<LanguageType, Translations> = {
     mobilityLabel: "Mobility Level",
     authRequired: "Authentication Required",
     authRequiredDesc: "Access to the real-time crisis dashboard requires a registered profile for personalized step-free routing.",
-    close: "Close"
+    close: "Close",
+    situationSetup: "Your situation",
+    whereAreYou: "Where are you?",
+    savedLocation: "Use saved location",
+    useMyLocation: "Use my location",
+    findingLocation: "Finding your location...",
+    locationUnavailable: "Your location is unavailable.",
+    locationPermissionDenied: "Location permission was not granted.",
+    locationUpdated: "Location updated. Safety information refreshed.",
+    whatsHappening: "What's happening?",
+    checkSafety: "Check my safety",
+    checkingSafety: "Checking your safety...",
+    floodSituation: "Flood",
+    wildfireSituation: "Wildfire",
+    cycloneSituation: "Cyclone",
+    earthquakeSituation: "Earthquake",
+    extremeHeatSituation: "Extreme heat",
+    urbanEmergencySituation: "Urban emergency",
+    savingSettings: "Saving your settings...",
+    settingsSaved: "Settings saved.",
+    settingsSaveFailed: "Settings could not be saved.",
+    saveProfile: "Save profile"
+    ,unverifiedData: "Information unavailable",
+    followOfficialInstructions: "Follow official emergency instructions.",
+    safeRouteUnavailable: "Safe route unavailable.",
+    youAreHere: "You are here"
   },
 
   hi: {
@@ -338,7 +390,32 @@ export const translations: Record<LanguageType, Translations> = {
     mobilityLabel: "गतिशीलता स्तर",
     authRequired: "लॉगिन आवश्यक है",
     authRequiredDesc: "व्यक्तिगत सुरक्षित मार्ग एवं आश्रय आवंटन के लिए पंजीकृत प्रोफ़ाइल से प्रवेश करें।",
-    close: "बंद करें"
+    close: "बंद करें",
+    situationSetup: "आपकी स्थिति",
+    whereAreYou: "आप कहां हैं?",
+    savedLocation: "सहेजा स्थान उपयोग करें",
+    useMyLocation: "मेरा स्थान उपयोग करें",
+    findingLocation: "आपका स्थान खोजा जा रहा है...",
+    locationUnavailable: "आपका स्थान उपलब्ध नहीं है।",
+    locationPermissionDenied: "स्थान की अनुमति नहीं मिली।",
+    locationUpdated: "स्थान अपडेट हुआ। सुरक्षा जानकारी ताज़ा की गई।",
+    whatsHappening: "क्या हो रहा है?",
+    checkSafety: "मेरी सुरक्षा जांचें",
+    checkingSafety: "आपकी सुरक्षा जांची जा रही है...",
+    floodSituation: "बाढ़",
+    wildfireSituation: "जंगल की आग",
+    cycloneSituation: "चक्रवात",
+    earthquakeSituation: "भूकंप",
+    extremeHeatSituation: "अत्यधिक गर्मी",
+    urbanEmergencySituation: "शहरी आपातकाल",
+    savingSettings: "आपकी सेटिंग सहेजी जा रही है...",
+    settingsSaved: "सेटिंग सहेजी गई।",
+    settingsSaveFailed: "सेटिंग सहेजी नहीं जा सकी।",
+    saveProfile: "प्रोफ़ाइल सहेजें"
+    ,unverifiedData: "जानकारी उपलब्ध नहीं है",
+    followOfficialInstructions: "आधिकारिक आपातकालीन निर्देशों का पालन करें।",
+    safeRouteUnavailable: "सुरक्षित मार्ग उपलब्ध नहीं है।",
+    youAreHere: "आप यहां हैं"
   },
 
   bn: {
@@ -448,7 +525,32 @@ export const translations: Record<LanguageType, Translations> = {
     mobilityLabel: "গতিশীলতার মাত্রা",
     authRequired: "লগইন আবশ্যক",
     authRequiredDesc: "ব্যক্তিগত নিরাপদ পথ এবং আশ্রয় বরাদ্দের জন্য নিবন্ধিত প্রোফাইলে লগইন করুন।",
-    close: "বন্ধ করুন"
+    close: "বন্ধ করুন",
+    situationSetup: "আপনার পরিস্থিতি",
+    whereAreYou: "আপনি কোথায় আছেন?",
+    savedLocation: "সংরক্ষিত অবস্থান ব্যবহার করুন",
+    useMyLocation: "আমার অবস্থান ব্যবহার করুন",
+    findingLocation: "আপনার অবস্থান খোঁজা হচ্ছে...",
+    locationUnavailable: "আপনার অবস্থান পাওয়া যাচ্ছে না।",
+    locationPermissionDenied: "অবস্থানের অনুমতি দেওয়া হয়নি।",
+    locationUpdated: "অবস্থান আপডেট হয়েছে। নিরাপত্তা তথ্য নতুন করা হয়েছে।",
+    whatsHappening: "কী ঘটছে?",
+    checkSafety: "আমার নিরাপত্তা পরীক্ষা করুন",
+    checkingSafety: "আপনার নিরাপত্তা পরীক্ষা করা হচ্ছে...",
+    floodSituation: "বন্যা",
+    wildfireSituation: "দাবানল",
+    cycloneSituation: "ঘূর্ণিঝড়",
+    earthquakeSituation: "ভূমিকম্প",
+    extremeHeatSituation: "চরম তাপ",
+    urbanEmergencySituation: "শহুরে জরুরি অবস্থা",
+    savingSettings: "আপনার সেটিংস সংরক্ষণ করা হচ্ছে...",
+    settingsSaved: "সেটিংস সংরক্ষিত হয়েছে।",
+    settingsSaveFailed: "সেটিংস সংরক্ষণ করা যায়নি।",
+    saveProfile: "প্রোফাইল সংরক্ষণ করুন"
+    ,unverifiedData: "তথ্য পাওয়া যাচ্ছে না",
+    followOfficialInstructions: "সরকারি জরুরি নির্দেশনা অনুসরণ করুন।",
+    safeRouteUnavailable: "নিরাপদ পথ পাওয়া যাচ্ছে না।",
+    youAreHere: "আপনি এখানে"
   },
 
   or: {
@@ -558,7 +660,32 @@ export const translations: Record<LanguageType, Translations> = {
     mobilityLabel: "ଚଳପ୍ରଚଳ ସ୍ତର",
     authRequired: "ଲଗଇନ୍ ଆବଶ୍ୟକ",
     authRequiredDesc: "ବ୍ୟକ୍ତିଗତ ସୁରକ୍ଷିତ ପଥ ଓ ଆଶ୍ରୟ ପାଇଁ ପଞ୍ଜୀକୃତ ପ୍ରୋଫାଇଲରେ ସାଇନ ଇନ କରନ୍ତୁ।",
-    close: "ବନ୍ଦ କରନ୍ତୁ"
+    close: "ବନ୍ଦ କରନ୍ତୁ",
+    situationSetup: "ଆପଣଙ୍କ ପରିସ୍ଥିତି",
+    whereAreYou: "ଆପଣ କେଉଁଠି ଅଛନ୍ତି?",
+    savedLocation: "ସଞ୍ଚିତ ସ୍ଥାନ ବ୍ୟବହାର କରନ୍ତୁ",
+    useMyLocation: "ମୋ ସ୍ଥାନ ବ୍ୟବହାର କରନ୍ତୁ",
+    findingLocation: "ଆପଣଙ୍କ ସ୍ଥାନ ଖୋଜାଯାଉଛି...",
+    locationUnavailable: "ଆପଣଙ୍କ ସ୍ଥାନ ଉପଲବ୍ଧ ନାହିଁ।",
+    locationPermissionDenied: "ସ୍ଥାନ ଅନୁମତି ଦିଆଯାଇନାହିଁ।",
+    locationUpdated: "ସ୍ଥାନ ଅଦ୍ୟତନ ହୋଇଛି। ସୁରକ୍ଷା ସୂଚନା ନବୀକରଣ ହୋଇଛି।",
+    whatsHappening: "କଣ ଘଟୁଛି?",
+    checkSafety: "ମୋ ସୁରକ୍ଷା ଯାଞ୍ଚ କରନ୍ତୁ",
+    checkingSafety: "ଆପଣଙ୍କ ସୁରକ୍ଷା ଯାଞ୍ଚ ହେଉଛି...",
+    floodSituation: "ବନ୍ୟା",
+    wildfireSituation: "ଜଙ୍ଗଲ ନିଆଁ",
+    cycloneSituation: "ବାତ୍ୟା",
+    earthquakeSituation: "ଭୂମିକମ୍ପ",
+    extremeHeatSituation: "ଅତ୍ୟଧିକ ଉତ୍ତାପ",
+    urbanEmergencySituation: "ସହରୀ ଜରୁରୀକାଳୀନ ପରିସ୍ଥିତି",
+    savingSettings: "ଆପଣଙ୍କ ସେଟିଂ ସଞ୍ଚୟ ହେଉଛି...",
+    settingsSaved: "ସେଟିଂ ସଞ୍ଚୟ ହୋଇଛି।",
+    settingsSaveFailed: "ସେଟିଂ ସଞ୍ଚୟ ହୋଇପାରିଲା ନାହିଁ।",
+    saveProfile: "ପ୍ରୋଫାଇଲ ସଞ୍ଚୟ କରନ୍ତୁ"
+    ,unverifiedData: "ସୂଚନା ଉପଲବ୍ଧ ନାହିଁ",
+    followOfficialInstructions: "ସରକାରୀ ଜରୁରୀ ନିର୍ଦ୍ଦେଶାବଳୀ ପାଳନ କରନ୍ତୁ।",
+    safeRouteUnavailable: "ନିରାପଦ ମାର୍ଗ ଉପଲବ୍ଧ ନାହିଁ।",
+    youAreHere: "ଆପଣ ଏଠାରେ ଅଛନ୍ତି"
   },
 
   ur: {
@@ -668,7 +795,32 @@ export const translations: Record<LanguageType, Translations> = {
     mobilityLabel: "نقل و حرکت کی سطح",
     authRequired: "لاگ ان ضروری ہے",
     authRequiredDesc: "ذاتی محفوظ راستے اور پناہ گاہ کے لیے رجسٹرڈ پروفائل کے ساتھ لاگ ان کریں۔",
-    close: "بند کریں"
+    close: "بند کریں",
+    situationSetup: "آپ کی صورتحال",
+    whereAreYou: "آپ کہاں ہیں؟",
+    savedLocation: "محفوظ مقام استعمال کریں",
+    useMyLocation: "میرا مقام استعمال کریں",
+    findingLocation: "آپ کا مقام تلاش کیا جا رہا ہے...",
+    locationUnavailable: "آپ کا مقام دستیاب نہیں ہے۔",
+    locationPermissionDenied: "مقام کی اجازت نہیں دی گئی۔",
+    locationUpdated: "مقام اپ ڈیٹ ہو گیا۔ حفاظتی معلومات تازہ کی گئی ہیں۔",
+    whatsHappening: "کیا ہو رہا ہے؟",
+    checkSafety: "میری حفاظت چیک کریں",
+    checkingSafety: "آپ کی حفاظت چیک کی جا رہی ہے...",
+    floodSituation: "سیلاب",
+    wildfireSituation: "جنگلات کی آگ",
+    cycloneSituation: "سمندری طوفان",
+    earthquakeSituation: "زلزلہ",
+    extremeHeatSituation: "شدید گرمی",
+    urbanEmergencySituation: "شہری ہنگامی صورتحال",
+    savingSettings: "آپ کی ترتیبات محفوظ کی جا رہی ہیں...",
+    settingsSaved: "ترتیبات محفوظ ہو گئیں۔",
+    settingsSaveFailed: "ترتیبات محفوظ نہیں ہو سکیں۔",
+    saveProfile: "پروفائل محفوظ کریں"
+    ,unverifiedData: "معلومات دستیاب نہیں",
+    followOfficialInstructions: "سرکاری ہنگامی ہدایات پر عمل کریں۔",
+    safeRouteUnavailable: "محفوظ راستہ دستیاب نہیں۔",
+    youAreHere: "آپ یہاں ہیں"
   },
 
   ja: {
@@ -778,7 +930,32 @@ export const translations: Record<LanguageType, Translations> = {
     mobilityLabel: "移動能力レベル",
     authRequired: "ログインが必要です",
     authRequiredDesc: "個別化された段差なし安全避難ルートの利用には登録プロファイルへのサインインが必要です。",
-    close: "閉じる"
+    close: "閉じる",
+    situationSetup: "あなたの状況",
+    whereAreYou: "今どこにいますか？",
+    savedLocation: "保存した場所を使う",
+    useMyLocation: "現在地を使う",
+    findingLocation: "現在地を確認しています...",
+    locationUnavailable: "現在地を取得できません。",
+    locationPermissionDenied: "位置情報の許可がありません。",
+    locationUpdated: "現在地を更新しました。安全情報を再計算しました。",
+    whatsHappening: "何が起きていますか？",
+    checkSafety: "安全を確認する",
+    checkingSafety: "安全情報を確認しています...",
+    floodSituation: "洪水",
+    wildfireSituation: "山火事",
+    cycloneSituation: "サイクロン",
+    earthquakeSituation: "地震",
+    extremeHeatSituation: "極端な暑さ",
+    urbanEmergencySituation: "都市の緊急事態",
+    savingSettings: "設定を保存しています...",
+    settingsSaved: "設定を保存しました。",
+    settingsSaveFailed: "設定を保存できませんでした。",
+    saveProfile: "プロフィールを保存"
+    ,unverifiedData: "情報を取得できません",
+    followOfficialInstructions: "公式の緊急指示に従ってください。",
+    safeRouteUnavailable: "安全なルートを取得できません。",
+    youAreHere: "現在地"
   }
 };
 

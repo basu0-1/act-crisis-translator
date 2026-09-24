@@ -117,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Right Side: Language, Theme, Safety Provenance, User */}
-        <div className="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2.5 flex-shrink-0">
           {/* Multi-Language Switcher (EN, HI, BN, OR, UR, JA) */}
           <div className="relative">
             <button
@@ -201,7 +201,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Source Provenance / Audit Button */}
           <button
             onClick={onOpenProvenance}
-            className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="hidden sm:flex p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             title={t.safetyAudit}
           >
             <ShieldCheck className="h-4 w-4" />

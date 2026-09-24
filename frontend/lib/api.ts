@@ -7,7 +7,8 @@ import {
   SimulationState,
   LanguageType,
   MobilityType,
-  RoadStatus
+  RoadStatus,
+  HazardType
 } from "../types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -19,7 +20,7 @@ export async function fetchSimulationState(): Promise<SimulationState> {
     const res = await fetch(`${API_BASE}/simulate/state`, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: SimulationState = await res.json();
-    
+
     // Save locally for offline cache fallback
     if (typeof window !== "undefined") {
       localStorage.setItem(CACHE_STATE_KEY, JSON.stringify(data));
@@ -41,6 +42,9 @@ export async function triggerSimulationEvent(event: {
   time_to_impact_minutes?: number;
   is_offline?: boolean;
   language?: LanguageType;
+  latitude?: number;
+  longitude?: number;
+  hazard_type?: HazardType;
   shelter_id?: string;
 }): Promise<SimulationState> {
   try {
@@ -82,6 +86,35 @@ export async function updateLanguage(lang: LanguageType): Promise<SimulationStat
     event_type: "language_changed",
     language: lang,
   });
+}
+
+export async function updateLocation(latitude: number, longitude: number): Promise<SimulationState> {
+  return triggerSimulationEvent({
+    event_type: "location_changed",
+    latitude,
+    longitude,
+  });
+}
+
+export async function updateSituation(hazardType: HazardType): Promise<SimulationState> {
+  return triggerSimulationEvent({
+    event_type: "situation_changed",
+    hazard_type: hazardType,
+  });
+}
+
+export async function updateUserProfile(profile: UserProfile): Promise<UserProfile> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("act_auth_token") : null;
+  const res = await fetch(`${API_BASE}/user/profile`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(profile),
+  });
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  return res.json();
 }
 
 export function getOfflineCachedState(): SimulationState {
@@ -250,4 +283,4 @@ export async function recordUserTimelineEvent(
   } catch (e) {
     console.warn("Could not persist timeline event to DB:", e);
   }
-}
+}

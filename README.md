@@ -1,4 +1,4 @@
-# ACT — Actionable Crisis Translator
+﻿# ACT â€” Actionable Crisis Translator
 
 ACT is an emergency decision-support system that translates official hazard information into personalized, accessibility-aware guidance. The backend remains the source of truth for decision logic, and the frontend renders that state for the user.
 
@@ -18,7 +18,7 @@ The platform turns broad emergency alerts into clear personal instructions for:
 
 The system follows the flow:
 
-HAZARD → PERSON → RISK → ROUTE → ACTION → ADAPT
+HAZARD â†’ PERSON â†’ RISK â†’ ROUTE â†’ ACTION â†’ ADAPT
 
 In the repository, this is implemented in the backend with:
 
@@ -83,6 +83,19 @@ The default demo follows this sequence:
 6. The backend recalculates the route.
 7. The map and action plan update to the new route and shelter.
 
+## Real-user setup
+
+The dashboard starts with a `Your situation` setup area:
+
+- `Use saved location` uses the current ACT profile coordinates.
+- `Use my location` requests browser geolocation and reports permission, timeout, or unsupported-browser failures.
+- `What's happening?` selects one of the six hazard types supported by the backend schema.
+- `Check my safety` sends the selected location and situation through the existing simulation and decision pipeline.
+
+The current seeded road network covers the default ACT demo location. A GPS location outside that network is retained for risk and map context, but the route result is marked unavailable rather than inventing a path.
+
+Only the seeded flood alert is verified in the current demo data. Other selected situations are explicitly marked unverified and use the existing fail-safe instructions until verified alert data is available.
+
 ## Geographic map implementation
 
 The app uses Leaflet for the live map and controls. It includes:
@@ -132,6 +145,7 @@ npm run build
 - default backend URL: `http://localhost:8000`
 - frontend API base can be set with `NEXT_PUBLIC_API_URL`
 - offline cached fallback remains supported for fail-safe behavior
+- `DATABASE_URL` selects the SQLAlchemy database; production PostgreSQL requires the additive schema to match the active model
 
 ## Accessibility and safety
 
@@ -139,6 +153,7 @@ npm run build
 - action information remains visible without hover-only interactions
 - missing geographic information does not get replaced with invented coordinates
 - the dashboard preserves the emergency action plan while the map updates
+- unverified situations show `Information unavailable` and direct the user to official emergency instructions
 
 ## Repository note
 

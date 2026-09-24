@@ -4,22 +4,14 @@ import React from "react";
 import {
   ShieldAlert,
   Home,
-  FileText,
-  Sparkles,
-  ShieldCheck,
   LayoutDashboard,
   User,
   LogOut,
-  Sliders,
   Settings,
   PanelLeftClose,
-  PanelLeftOpen,
-  MapPin,
-  Waves,
-  Zap,
   UserCheck
 } from "lucide-react";
-import { LanguageType, SimulationState, UserProfile } from "../types";
+import { LanguageType, SimulationState } from "../types";
 import { useAuth } from "../context/AuthContext";
 import { getTranslation } from "../lib/translations";
 
@@ -58,9 +50,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems: { id: NavTab; label: string; icon: any; requiresAuth?: boolean }[] = [
     { id: "dashboard", label: t.emergencyDashboard, icon: LayoutDashboard, requiresAuth: true },
     { id: "home", label: t.home, icon: Home },
-    { id: "how-it-works", label: t.howItWorks, icon: FileText },
-    { id: "features", label: t.features, icon: Sparkles },
-    { id: "safety", label: t.safetyTrust, icon: ShieldCheck },
   ];
 
   const handleNavClick = (item: (typeof navItems)[0]) => {
@@ -92,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* ChatGPT-style Sidebar Container */}
       <aside
         className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-slate-50 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out ${
-          isOpen ? "w-64 sm:w-72 translate-x-0" : "-translate-x-full lg:translate-x-0 lg:w-0 lg:border-r-0 lg:overflow-hidden"
+          isOpen ? "w-[min(18rem,calc(100vw-1rem))] xl:w-72 translate-x-0" : "-translate-x-full lg:translate-x-0 lg:w-0 lg:border-r-0 lg:overflow-hidden"
         }`}
       >
         {/* Top Header: Brand & Collapse Toggle */}
@@ -123,28 +112,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        {/* Action Button (Like ChatGPT New Chat) */}
-        <div className="p-3 flex-shrink-0">
-          <button
-            onClick={() => {
-              if (!isAuthenticated) {
-                onOpenAuth();
-              } else {
-                onTabChange("dashboard");
-              }
-            }}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-sm hover:border-red-500 dark:hover:border-red-500 hover:text-red-600 dark:hover:text-red-400 transition group"
-          >
-            <span className="flex items-center space-x-2">
-              <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-              <span>{t.newAssessment}</span>
-            </span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-red-50 dark:group-hover:bg-red-950/40 group-hover:text-red-600 dark:group-hover:text-red-400">
-              ACT
-            </span>
-          </button>
-        </div>
-
         {/* Navigation Items (ChatGPT List Style) */}
         <div className="flex-1 overflow-y-auto px-2 space-y-1">
           <div className="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -170,52 +137,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             );
           })}
 
-          {/* Active Hazard & Shelter Context Snippet */}
-          {state?.alert && (
-            <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 px-2 space-y-2">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                {t.activeCrisis}
-              </div>
-              <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 text-xs">
-                <div className="flex items-center space-x-1.5 text-amber-700 dark:text-amber-300 font-bold">
-                  <Waves className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                  <span className="truncate">{state.alert.headline}</span>
-                </div>
-                <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 flex items-center space-x-1">
-                  <MapPin className="h-3 w-3 text-red-500" />
-                  <span className="truncate">{state.alert.radius_km} km radius</span>
-                </div>
-              </div>
-
-              {state.route_recommendation?.destination && (
-                <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-xs">
-                  <div className="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold">
-                    {t.assignedHaven}:
-                  </div>
-                  <div className="text-slate-800 dark:text-slate-200 font-semibold truncate mt-0.5">
-                    {state.route_recommendation.destination.name}
-                  </div>
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">
-                    {state.route_recommendation.recommended_route?.is_accessible ? `✓ ${t.stepFreeVerified}` : ""}
-                  </div>
-                </div>
-              )}
-
-              {/* Simulation drawer button */}
-              <button
-                onClick={onToggleDemoDrawer}
-                className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition"
-              >
-                <span className="flex items-center space-x-1.5">
-                  <Zap className="h-3.5 w-3.5 text-amber-500" />
-                  <span>{t.simulationControls}</span>
-                </span>
-                <span className="text-[10px] text-indigo-500 dark:text-indigo-400">
-                  {showDemoDrawer ? t.hideControls : t.showControls}
-                </span>
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Bottom Section: User Profile Card (ChatGPT Style) */}

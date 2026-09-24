@@ -15,6 +15,15 @@ graph TD
     G --> H[Leaflet Map Visualization]
 ```
 
+The real-user dashboard adds this state flow before the decision view:
+
+```mermaid
+flowchart LR
+    L[Saved or browser location] --> S[Situation selection]
+    S --> C[Check my safety]
+    C --> E[Existing ACT decision pipeline]
+```
+
 ## Deterministic engines
 
 The backend uses deterministic rule-based engines rather than a browser-side route planner:
@@ -44,6 +53,10 @@ The frontend map uses Leaflet as a visualization layer only. It reads the backen
 
 This keeps ACT aligned with the backend source of truth and avoids duplicate routing logic.
 
+The current seeded route graph has a defined geographic coverage area. When a browser location is outside that coverage, ACT preserves the location for risk and map context but returns an unavailable route rather than fabricating geometry.
+
 ## Fail-safe behavior
 
 If geographic data is missing or insufficient, ACT does not fabricate coordinates. The system shows the safest available state, preserves the rest of the decision logic, and avoids inventing route geometry or shelter positions.
+
+Selecting a situation without verified alert telemetry also enters this fail-safe path. The UI marks the information unavailable and directs the user to official emergency instructions.

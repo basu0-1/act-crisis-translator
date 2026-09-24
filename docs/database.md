@@ -1,6 +1,16 @@
 # Database Schema Documentation — ACT Platform
 
-ACT utilizes an indexed relational schema implemented via SQLAlchemy 2.0 with PostgreSQL 16 compatibility.
+ACT uses SQLAlchemy with PostgreSQL compatibility. The currently booted application path is the legacy/demo model set imported by `backend/app/database.py`; it is distinct from the older enterprise model definitions under `backend/app/models/models.py`.
+
+## Active application database path
+
+`backend/app/database.py` creates one SQLAlchemy `Base`, imports `app.models.user.User`, `app.models.alert.EmergencyAlert`, and the infrastructure entities, then calls `Base.metadata.create_all()` during startup. `create_all()` creates missing tables but does not add missing columns to existing production tables.
+
+The active `users` table expected by the current dashboard/authentication path contains:
+
+`id`, `email`, `hashed_password`, `role`, `name`, `mobility`, `transport`, `companions`, `language`, `lat`, `lng`, `accessibility_requirements`, `critical_needs`, `notification_preferences`, `created_at`, `updated_at`.
+
+Production PostgreSQL must be checked against this list before deployment. The repository currently has no Alembic migration runner.
 
 ---
 
@@ -22,8 +32,8 @@ ACT utilizes an indexed relational schema implemented via SQLAlchemy 2.0 with Po
 ## 2. Table Specifications (13 Tables)
 
 1. **`users`**
-   - Primary user identity and authentication record.
-   - Columns: `id` (PK), `email` (Unique, Index), `hashed_password`, `role` (Enum: `END_USER`, `ADMIN`), `is_active`, `created_at`, `updated_at`.
+   - Primary user identity and authentication record for the active application path.
+   - Columns: `id` (string PK), `email` (Unique, Index), `hashed_password`, `role`, `name`, `mobility`, `transport`, `companions`, `language`, `lat`, `lng`, `accessibility_requirements` (JSON), `critical_needs` (JSON), `notification_preferences` (JSON), `created_at`, `updated_at`.
 
 2. **`user_profiles`**
    - Citizen personal attributes and mobility tier.

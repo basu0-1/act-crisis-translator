@@ -14,7 +14,7 @@ This guide outlines deploying the ACT monorepo to production using modern cloud 
    ```env
    DATABASE_URL="postgresql://username:password@ep-sample-12345.us-east-2.aws.neon.tech/act_db?sslmode=require"
    ```
-3. The SQLAlchemy models will automatically initialize tables on first backend boot.
+3. SQLAlchemy `create_all()` can create missing tables on first boot, but it does not add missing columns to an existing PostgreSQL table. Apply any additive production schema migration before deploying a model that expects new columns.
 
 ---
 
@@ -31,6 +31,7 @@ This guide outlines deploying the ACT monorepo to production using modern cloud 
    - `ENVIRONMENT`: `production`
    - `DEMO_MODE`: `true` (or `false` when connecting to live civil protection ingestion).
    - `BACKEND_CORS_ORIGINS`: `["https://your-frontend.vercel.app"]`
+   - `NEXT_PUBLIC_API_URL` is configured on the frontend, not the backend.
 6. Verify Deployment:
    Send a GET request to `https://your-backend.onrender.com/health` and verify `{"status": "healthy"}`.
 
@@ -77,5 +78,6 @@ docker compose up --build
 - [ ] Emergency alert renders with `SIMULATED / DEMO SCENARIO` watermark.
 - [ ] Clicking "Simulate Riverside Road Blockage" triggers dynamic route recalculation.
 - [ ] Disconnecting internet displays offline cached plan banner.
+- [ ] `users` columns match the active SQLAlchemy model before startup.
 - [ ] Admin login allows managing alerts and viewing security audit trail.
 - [ ] Regular citizen login gets 403 Forbidden when attempting to access `/admin/dashboard`.

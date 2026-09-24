@@ -13,7 +13,8 @@ import { UserProfileModal } from "../components/UserProfileModal";
 import { SourceProvenanceModal } from "../components/SourceProvenanceModal";
 import { AuthModal } from "../components/AuthModal";
 import { AdminDashboard } from "../components/AdminDashboard";
-import { LanguageType, MobilityType, SimulationState, UserProfile } from "../types";
+import { MapContextControls } from "../components/MapContextControls";
+import { HazardType, LanguageType, MobilityType, SimulationState, UserProfile } from "../types";
 import { useAuth } from "../context/AuthContext";
 import { getTranslation } from "../lib/translations";
 import {
@@ -21,6 +22,9 @@ import {
   triggerSimulationEvent,
   resetSimulation,
   updateLanguage,
+  updateLocation,
+  updateSituation,
+  updateUserProfile,
   getOfflineCachedState,
   recordUserTimelineEvent
 } from "../lib/api";
@@ -152,6 +156,7 @@ export default function DashboardPage() {
     if (!state) return;
     setIsRecalculating(true);
     try {
+      await updateUserProfile(user);
       const updated = await triggerSimulationEvent({
         event_type: "mobility_changed",
         mobility: user.mobility,
@@ -164,6 +169,21 @@ export default function DashboardPage() {
       );
     } catch (e) {
       console.error("Profile update error:", e);
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
+  const handleCheckSafety = async (latitude: number, longitude: number, hazardType: HazardType) => {
+    if (!state) return;
+    setIsRecalculating(true);
+    try {
+      await updateLocation(latitude, longitude);
+      const updated = await updateSituation(hazardType);
+      setState(updated);
+      recordUserTimelineEvent("Location and emergency situation updated.", "safety_check", authUser?.id || "demo_user_01");
+    } catch (e) {
+      console.error("Safety check error:", e);
     } finally {
       setIsRecalculating(false);
     }
@@ -246,7 +266,7 @@ export default function DashboardPage() {
           ================================================== */}
       <div
         className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-          isSidebarOpen ? "lg:pl-64 sm:lg:pl-72" : "lg:pl-0"
+          isSidebarOpen ? "lg:pl-64 xl:pl-72" : "lg:pl-0"
         }`}
       >
         {/* Streamlined Top Bar */}
@@ -272,6 +292,35 @@ export default function DashboardPage() {
             ================================================== */}
         {activeTab !== "dashboard" ? (
           <div className="flex-1 flex flex-col">
+            {activeTab !== "home" && (
+              <section className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-widest text-red-600 dark:text-red-400">ACT</p>
+                      <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
+                        {activeTab === "how-it-works" ? t.howItWorks : activeTab === "features" ? t.features : t.safetyTrust}
+                      </h1>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-2xl">
+                        {activeTab === "how-it-works"
+                          ? `${t.emergencyAlert} → ${t.personalRiskAssessment} → ${t.tacticalEvacuationMap} → ${t.priorityActionPlan}`
+                          : activeTab === "features"
+                          ? `${t.safeRouteDescription}. ${t.stepFreeVerified}. ${t.offlineCached}.`
+                          : `${t.verifiedOfficialSource}. ${t.safetyAudit}. ${t.authRequiredDesc}`}
+                      </p>
+                    </div>
+                    {activeTab === "safety" && (
+                      <button
+                        onClick={() => setIsProvenanceOpen(true)}
+                        className="shrink-0 min-h-10 px-3 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-bold"
+                      >
+                        {t.safetyAudit}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
             {/* Hero Section */}
             <section className="relative pt-12 pb-16 px-4 sm:px-6 lg:px-8 text-center max-w-5xl mx-auto">
               <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-xs sm:text-sm font-bold shadow-sm mb-6">
@@ -361,6 +410,41 @@ export default function DashboardPage() {
               </div>
             </section>
 
+            <section className="pb-12 px-4 sm:px-6 lg:px-8">
+              <div className="max-w-7xl mx-auto">
+                <div className="flex items-end justify-between gap-4 mb-4">
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-widest text-red-600 dark:text-red-400">ACT</p>
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">Explore ACT</h2>
+                  </div>
+                  <p className="hidden sm:block text-xs text-slate-500 dark:text-slate-400">Clear information before you take action.</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { id: "how-it-works" as NavTab, title: t.howItWorks, text: `${t.emergencyAlert} → ${t.personalRiskAssessment} → ${t.priorityActionPlan}`, icon: ShieldCheck, iconClass: "bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300" },
+                    { id: "features" as NavTab, title: t.features, text: `${t.safeRouteDescription}. ${t.stepFreeVerified}.`, icon: Compass, iconClass: "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300" },
+                    { id: "safety" as NavTab, title: t.safetyTrust, text: `${t.verifiedOfficialSource}. ${t.safetyAudit}.`, icon: ShieldAlert, iconClass: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300" },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setActiveTab(item.id)}
+                        className="text-left min-h-36 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:-translate-y-0.5 hover:border-red-400 dark:hover:border-red-500/60 transition"
+                      >
+                        <span className={`h-10 w-10 rounded-xl flex items-center justify-center ${item.iconClass}`}>
+                          <Icon className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                        <span className="block mt-4 text-sm font-black text-slate-900 dark:text-white">{item.title}</span>
+                        <span className="block mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-400">{item.text}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+
             {/* Features Grid */}
             <section className="py-12 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -423,23 +507,37 @@ export default function DashboardPage() {
             ) : (
               /* Authenticated User Dashboard */
               <div className="flex-1 flex flex-col">
-                {/* Interactive Simulation Drawer (Collapsible) */}
-                {showDemoDrawer && (
-                  <div className="bg-indigo-50/50 dark:bg-indigo-950/30 border-b border-indigo-200 dark:border-indigo-800/40 p-4 sm:px-6">
-                    <div className="max-w-7xl mx-auto">
-                      <SimulationPanel
-                        state={state}
-                        onTriggerEvent={handleTriggerEvent}
-                        onReset={handleReset}
-                        isRecalculating={isRecalculating}
-                        language={currentLanguage}
-                      />
-                    </div>
-                  </div>
-                )}
-
                 {/* Minimal & Well-Organized Main Content Area */}
-                <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+                <main className="dashboard-main flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+                  <section className="rounded-2xl border border-indigo-300 dark:border-indigo-800 bg-indigo-50/70 dark:bg-indigo-950/30 p-3 sm:p-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowDemoDrawer((current) => !current)}
+                      className="w-full flex items-center justify-between gap-3 text-left"
+                      aria-expanded={showDemoDrawer}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-indigo-600 dark:text-indigo-300" aria-hidden="true" />
+                        <span>
+                          <span className="block text-sm font-black text-indigo-950 dark:text-white">{t.simulationControls}</span>
+                          <span className="block text-xs text-indigo-700 dark:text-indigo-300">{showDemoDrawer ? t.hideControls : t.showControls}</span>
+                        </span>
+                      </span>
+                      {showDemoDrawer ? <ChevronUp className="h-5 w-5 text-indigo-600 dark:text-indigo-300" /> : <ChevronDown className="h-5 w-5 text-indigo-600 dark:text-indigo-300" />}
+                    </button>
+                    {showDemoDrawer && (
+                      <div className="mt-3">
+                        <SimulationPanel
+                          state={state}
+                          onTriggerEvent={handleTriggerEvent}
+                          onReset={handleReset}
+                          isRecalculating={isRecalculating}
+                          language={currentLanguage}
+                        />
+                      </div>
+                    )}
+                  </section>
+
                   {/* ROW 1: Current Emergency Status & Personalized Risk Score */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                     {/* Emergency Status */}
@@ -510,6 +608,12 @@ export default function DashboardPage() {
                           {t.tacticalEvacuationMap}
                         </h2>
                       </div>
+                      <MapContextControls
+                        state={state}
+                        language={currentLanguage}
+                        isBusy={isRecalculating}
+                        onApply={handleCheckSafety}
+                      />
                       <EmergencyMap
                         user={state.user}
                         alert={state.alert}
@@ -519,6 +623,21 @@ export default function DashboardPage() {
                         isRecalculating={isRecalculating}
                         language={currentLanguage}
                       />
+                      <div className="bg-white dark:bg-slate-900 border border-emerald-500/30 rounded-2xl p-4 shadow-sm space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">{t.safeRouteDescription}</span>
+                          <span className={`text-[11px] font-black uppercase px-2 py-1 rounded-lg ${state.route_recommendation.recommended_route ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"}`}>
+                            {state.route_recommendation.recommended_route ? state.route_recommendation.recommended_route.status : "UNAVAILABLE"}
+                          </span>
+                        </div>
+                        {state.route_recommendation.recommended_route ? (
+                          <p className="text-sm text-slate-700 dark:text-slate-300">
+                            {state.route_recommendation.recommended_route.destination_name} · {state.route_recommendation.recommended_route.total_distance_km} km · {state.route_recommendation.recommended_route.estimated_time_minutes} min
+                          </p>
+                        ) : (
+                          <p className="text-sm text-amber-700 dark:text-amber-300">{t.safeRouteUnavailable} {t.followOfficialInstructions}</p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Shelter Details */}

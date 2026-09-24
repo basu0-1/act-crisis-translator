@@ -19,7 +19,7 @@ ACT is a **Personal Decision Layer** operating on top of verified emergency broa
    $$\text{Risk} = \text{Severity} \times \text{Exposure} \times \text{Vulnerability} \times \text{Time Pressure}$$
 2. **Mobility-Aware Safe Routing**: Uses graph pathfinding that strictly rejects physical barriers (stairs, unpaved terrain, flooded roads) for vulnerable individuals.
 3. **Structured Directive Extraction**: Generates unambiguous `NOW`, `NEXT`, `AVOID`, and `IF → THEN` action rules.
-4. **Multilingual Crisis Communication**: Delivers zero-hallucination localized directives in English, Hindi, and Japanese.
+4. **Multilingual Crisis Communication**: Delivers localized directives in English, Hindi, Bengali, Odia, Urdu, and Japanese, with an English fallback when a string is unavailable.
 5. **Offline Guarantee**: Persists the last verified action plan locally in case connectivity collapses during severe weather.
 
 ---
@@ -28,3 +28,5 @@ ACT is a **Personal Decision Layer** operating on top of verified emergency broa
 - **No Hallucinated Facts**: Shelter capacities, road statuses, and flood levels come strictly from deterministic verified engines.
 - **Fail-Safe Mechanism**: When telemetry is missing or unverified, the system displays `⚠️ INSUFFICIENT INFORMATION` and guides vertical in-place sheltering.
 - **Source Provenance**: 4-Tier trust hierarchy where official authorities (NDMA, FEMA) override unverified crowd signals.
+- **Location and Situation Setup**: Users can use saved profile coordinates or browser geolocation, select a backend-supported situation, and send both through the existing decision pipeline.
+- **Coverage Boundary**: The seeded route graph covers the seeded demo origin. Outside that network, route guidance is unavailable rather than fabricated.

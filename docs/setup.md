@@ -32,4 +32,15 @@ Frontend runs at: `http://localhost:3000`
 ```bash
 pytest backend/tests -v
 ```
-Verifies all 19 unit & integration tests covering the 5-agent pipeline, deterministic engines, and fail-safe triggers.
+Verifies the backend pipeline, deterministic engines, fail-safe triggers, roadblock recalculation, and location/situation state changes.
+
+## 4. Real-user dashboard flow
+
+After signing in, the dashboard lets the user:
+
+1. Use the saved profile location or request browser geolocation.
+2. Select Flood, Wildfire, Cyclone, Earthquake, Extreme Heat, or Urban Emergency.
+3. Press `Check my safety` to update backend state.
+4. Review the alert, personal risk, action plan, shelter, and route.
+
+The seeded route network only covers the seeded demo origin. Outside that coverage, ACT keeps the location but reports that a verified route is unavailable.

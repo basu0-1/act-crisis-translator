@@ -12,6 +12,7 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize2,
+  Minimize2,
   Info,
 } from "lucide-react";
 import { Road, Shelter, UserProfile, RouteRecommendation, Alert, LanguageType } from "../types";
@@ -33,8 +34,6 @@ type SelectedEntity =
   | { type: "user"; data: UserProfile }
   | null;
 
-const COORDINATE_FALLBACK = { lat: 28.6139, lng: 77.209 };
-
 const validCoordinate = (lat: number | undefined, lng: number | undefined) =>
   typeof lat === "number" && Number.isFinite(lat) && typeof lng === "number" && Number.isFinite(lng);
 
@@ -49,6 +48,9 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
 }) => {
   const [selectedEntity, setSelectedEntity] = useState<SelectedEntity>(null);
   const [showFloodZone, setShowFloodZone] = useState(true);
+  const [mapReady, setMapReady] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const mapShellRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const leafletRef = useRef<any>(null);
@@ -72,13 +74,16 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
     shelters.forEach((shelter) => {
       if (validCoordinate(shelter.lat, shelter.lng)) points.push([shelter.lat, shelter.lng]);
     });
-    if (points.length === 0 && validCoordinate(alert?.lat, alert?.lng)) points.push([alert.lat, alert.lng]);
-    if (points.length === 0) points.push([COORDINATE_FALLBACK.lat, COORDINATE_FALLBACK.lng]);
+    if (points.length === 0 && alert?.active && alert.provenance.verified && validCoordinate(alert?.lat, alert?.lng)) {
+      points.push([alert.lat, alert.lng]);
+    }
     return points;
   }, [routeCoordinates, userCoordinate, shelters, alert]);
 
+  const hasMapData = routeBounds.length > 0;
+
   useEffect(() => {
-    if (typeof window === "undefined" || !mapRef.current || mapInstanceRef.current) return;
+    if (typeof window === "undefined" || !mapRef.current || mapInstanceRef.current || !hasMapData) return;
 
     let cancelled = false;
 
@@ -101,6 +106,7 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
       }).addTo(map);
 
       mapInstanceRef.current = map;
+      setMapReady(true);
 
       const fitBounds = () => {
         if (routeBounds.length > 1) {
@@ -122,17 +128,18 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
         mapInstanceRef.current = null;
       }
       leafletRef.current = null;
+      setMapReady(false);
     };
-  }, [routeBounds]);
+  }, [routeBounds, hasMapData]);
 
   useEffect(() => {
     const L = leafletRef.current;
     const map = mapInstanceRef.current;
-    if (!map || !L) return;
+    if (!map || !L || !mapReady) return;
 
     const layers = L.layerGroup().addTo(map);
 
-    if (showFloodZone && validCoordinate(alert?.lat, alert?.lng)) {
+    if (showFloodZone && alert.active && alert.provenance.verified && validCoordinate(alert?.lat, alert?.lng)) {
       const hazardRing = L.circle([alert.lat, alert.lng], {
         radius: Math.max((alert.radius_km || 1) * 1000, 500),
         color: "#f87171",
@@ -213,7 +220,15 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
       layers.clearLayers();
       layers.remove();
     };
-  }, [alert, roads, shelters, routeCoordinates, routeRec?.destination?.id, showFloodZone, userCoordinate, user]);
+  }, [alert, roads, shelters, routeCoordinates, routeRec?.destination?.id, showFloodZone, userCoordinate, user, mapReady]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === mapShellRef.current);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
 
   const zoomMap = (delta: number) => {
     if (typeof window === "undefined") return;
@@ -242,10 +257,19 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
     map.fitBounds(L.latLngBounds(routeCoordinates), { padding: [32, 32], maxZoom: 15 });
   };
 
+  const toggleFullscreen = async () => {
+    if (!mapShellRef.current) return;
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else if (mapShellRef.current.requestFullscreen) {
+      await mapShellRef.current.requestFullscreen();
+    }
+  };
+
   const activeDestinationId = routeRec.destination?.id;
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-lg flex flex-col relative transition-colors">
+    <div ref={mapShellRef} className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-lg flex flex-col relative transition-colors ${isFullscreen ? "h-screen w-screen rounded-none" : ""}`}>
       <div className="bg-slate-50 dark:bg-slate-950 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
         <div className="flex items-center space-x-2 min-w-0">
           <MapIcon className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
@@ -270,6 +294,13 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
             <Layers className="h-3 w-3" />
             <span className="hidden sm:inline">{t.floodZoneProximity}</span>
           </button>
+          <button
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? "Exit full screen map" : "Open full screen map"}
+            className="h-8 w-8 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 flex items-center justify-center hover:border-emerald-500 transition"
+          >
+            {isFullscreen ? <Minimize2 className="h-4 w-4" aria-hidden="true" /> : <Maximize2 className="h-4 w-4" aria-hidden="true" />}
+          </button>
         </div>
       </div>
 
@@ -285,8 +316,18 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
         </div>
       )}
 
-      <div className="relative w-full h-[380px] sm:h-[430px] bg-slate-950 overflow-hidden select-none">
+      <div className={`relative w-full ${isFullscreen ? "h-[calc(100vh-58px)]" : "h-[320px] sm:h-[390px] lg:h-[430px]"} bg-slate-950 overflow-hidden select-none`}>
         <div ref={mapRef} className="h-full w-full" aria-label="Emergency map" />
+
+        {!hasMapData && (
+          <div className="absolute inset-0 z-[450] flex items-center justify-center bg-slate-900/95 p-6 text-center">
+            <div className="max-w-sm space-y-2">
+              <MapIcon className="h-8 w-8 mx-auto text-slate-400" aria-hidden="true" />
+              <p className="text-sm font-black text-white">{t.locationUnavailable}</p>
+              <p className="text-xs text-slate-300">{t.safeRouteDescription}</p>
+            </div>
+          </div>
+        )}
 
         <div className="absolute right-2 top-2 z-[500] flex flex-col gap-2">
           <button aria-label={t.zoomIn} onClick={() => zoomMap(1)} className="bg-slate-900/90 text-white border border-slate-700 rounded-lg h-9 w-9 flex items-center justify-center shadow-md hover:bg-slate-800">
@@ -305,6 +346,7 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
 
         <div className="absolute bottom-2 left-2 bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl text-[10px] space-y-1 text-slate-300 backdrop-blur-md z-[500]">
           <span className="font-bold text-slate-200 block uppercase">Map Legend</span>
+          {userCoordinate && <div className="flex items-center space-x-2"><span className="h-2 w-2 bg-blue-500 rounded-full" /><span>{t.youAreHere}</span></div>}
           <div className="flex items-center space-x-2"><span className="h-2 w-4 bg-emerald-500 rounded" /><span>{t.tacticalEvacuationMap}</span></div>
           <div className="flex items-center space-x-2"><span className="h-2 w-4 bg-red-500 rounded" /><span>{t.roadblockDetected}</span></div>
           <div className="flex items-center space-x-2"><span>🏫 {t.assignedHaven}</span></div>
@@ -332,6 +374,13 @@ export const EmergencyMap: React.FC<EmergencyMapProps> = ({
                 <p>Status: <span className="uppercase font-semibold text-emerald-400">{selectedEntity.data.status}</span></p>
                 {selectedEntity.data.capacity && <p>Capacity: {selectedEntity.data.current_occupancy} / {selectedEntity.data.capacity}</p>}
                 {selectedEntity.data.is_accessible !== undefined && <p>Accessible: {selectedEntity.data.is_accessible ? "✓ Accessible" : "Standard"}</p>}
+                {routeRec.destination?.id === selectedEntity.data.id && routeRec.recommended_route && (
+                  <>
+                    <p>{t.distance}: {routeRec.recommended_route.total_distance_km} km</p>
+                    <p>{t.estimatedTime}: {routeRec.recommended_route.estimated_time_minutes} min</p>
+                  </>
+                )}
+                <p>Verified: {selectedEntity.data.updated_at}</p>
                 {selectedEntity.data.address && <p className="text-slate-400">{selectedEntity.data.address}</p>}
               </div>
             )}

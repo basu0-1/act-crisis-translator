@@ -4,7 +4,7 @@ Simulation Engine Schemas for ACT
 from enum import Enum
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
-from app.schemas.alert import Alert, AlertSeverity
+from app.schemas.alert import Alert, AlertSeverity, HazardType
 from app.schemas.user import UserProfile, MobilityType, LanguageType
 from app.schemas.route import Road, Shelter, RouteRecommendation, RoadStatus
 from app.schemas.risk import PersonalRisk
@@ -19,6 +19,8 @@ class SimulationEventType(str, Enum):
     TIME_REDUCED = "time_reduced"
     OFFLINE_TOGGLED = "offline_toggled"
     LANGUAGE_CHANGED = "language_changed"
+    LOCATION_CHANGED = "location_changed"
+    SITUATION_CHANGED = "situation_changed"
     SHELTER_UNAVAILABLE = "shelter_unavailable"
     RESET = "reset"
 
@@ -32,6 +34,9 @@ class SimulationEvent(BaseModel):
     time_to_impact_minutes: Optional[int] = None
     is_offline: Optional[bool] = None
     language: Optional[LanguageType] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    hazard_type: Optional[HazardType] = None
     shelter_id: Optional[str] = None
 
 

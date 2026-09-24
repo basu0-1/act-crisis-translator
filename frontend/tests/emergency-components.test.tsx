@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import { EmergencyMap } from '../components/EmergencyMap';
+import { MapContextControls } from '../components/MapContextControls';
 import { getTranslation } from '../lib/translations';
 
 vi.mock('leaflet', () => {
@@ -154,6 +155,7 @@ describe('ACT emergency map', () => {
     expect(screen.getByLabelText(/zoom out/i)).toBeTruthy();
     expect(screen.getByLabelText(/recenter map/i)).toBeTruthy();
     expect(screen.getByLabelText(/fit route/i)).toBeTruthy();
+    expect(screen.getByLabelText(/open full screen map/i)).toBeTruthy();
     expect(screen.getByText(/leaflet/i)).toBeTruthy();
   });
 
@@ -164,5 +166,118 @@ describe('ACT emergency map', () => {
     expect(en.recenterMap).toBe('Recenter Map');
     expect(en.fitRoute).toBe('Fit Route');
     expect(en.startSafeRoute).toBe('Start Safe Route');
+  });
+
+  it('submits the selected saved location and situation through the map context action', async () => {
+    const onCheckSafety = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <MapContextControls
+        state={{
+          alert: {
+            id: 'alert-test', hazard_type: 'flood', severity: 'high', certainty: 'likely',
+            headline: 'Test alert', description: 'Test alert', lat: 28.6139, lng: 77.209,
+            radius_km: 5, time_to_impact_minutes: 32, required_action: 'evacuate', source_level: 1,
+            provenance: { source_name: 'Test', source_level: 1, timestamp: '', confidence: 1, verified: true },
+            created_at: '', active: true,
+          },
+          user: {
+            id: 'user-demo-01', name: 'Demo User', lat: 28.6139, lng: 77.209,
+            language: 'en', mobility: 'limited', transport: 'walking', companions: 'none',
+            accessibility_requirements: [], critical_needs: [],
+          },
+          roads: [], shelters: [],
+          risk: { score: 50, level: 'medium', estimated_action_window_minutes: 32, reasons: [], breakdown: [], prototype_disclaimer: '' },
+          route_recommendation: { recommended_route: null, destination: null, destination_type: 'shelter', estimated_time_minutes: 0, safety_score: 0, reasons: [], rejected_routes: [], all_routes: [], status: 'available' },
+          action_plan: { plan_id: 'test', timestamp: '', language: 'en', hazard: 'flood', risk_score: 50, risk_level: 'medium', action_window_minutes: 32, destination_shelter: '', route_summary: '', now: [], next: [], avoid: [], if_then: [], source_provenance: { source_name: 'Test', source_level: 1, timestamp: '', confidence: 1, verified: true }, disclaimer: '' },
+          is_offline: false, last_event_description: '',
+        }}
+        language="en"
+        isBusy={false}
+        onApply={onCheckSafety}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("What's happening?"), { target: { value: 'earthquake' } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /update map/i }));
+    });
+
+    expect(onCheckSafety).toHaveBeenCalledWith(28.6139, 77.2090, 'earthquake');
+  });
+
+  it('shows an unavailable state instead of a fabricated map location', () => {
+    render(
+      <EmergencyMap
+        user={{
+          id: 'user-demo-01', name: 'Demo User', lat: Number.NaN, lng: Number.NaN,
+          language: 'en', mobility: 'limited', transport: 'walking', companions: 'none',
+          accessibility_requirements: [], critical_needs: [],
+        }}
+        alert={{
+          id: 'alert-unavailable', hazard_type: 'flood', severity: 'high', certainty: 'possible',
+          headline: 'Information unavailable', description: 'Information unavailable.',
+          lat: Number.NaN, lng: Number.NaN, radius_km: 0, time_to_impact_minutes: 0,
+          required_action: 'none', source_level: 4,
+          provenance: { source_name: 'Information unavailable.', source_level: 4, timestamp: '', confidence: 0, verified: false },
+          created_at: '', active: false,
+        }}
+        roads={[]}
+        shelters={[]}
+        routeRec={{ recommended_route: null, destination: null, destination_type: 'shelter', estimated_time_minutes: 0, safety_score: 0, reasons: [], rejected_routes: [], all_routes: [], status: 'insufficient_info' }}
+        language="en"
+      />
+    );
+
+    expect(screen.getByText('Your location is unavailable.')).toBeTruthy();
+  });
+
+  it('sends browser live coordinates through the map update callback', async () => {
+    const onApply = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        getCurrentPosition: (success: PositionCallback) => success({
+          coords: {
+            latitude: 19.076,
+            longitude: 72.8777,
+            accuracy: 12,
+          } as GeolocationCoordinates,
+        } as GeolocationPosition),
+      },
+    });
+
+    render(
+      <MapContextControls
+        state={{
+          alert: {
+            id: 'alert-live', hazard_type: 'flood', severity: 'high', certainty: 'likely',
+            headline: 'Test alert', description: 'Test alert', lat: 28.6139, lng: 77.209,
+            radius_km: 5, time_to_impact_minutes: 32, required_action: 'evacuate', source_level: 1,
+            provenance: { source_name: 'Test', source_level: 1, timestamp: '', confidence: 1, verified: true },
+            created_at: '', active: true,
+          },
+          user: {
+            id: 'user-live', name: 'Live User', lat: 28.6139, lng: 77.209,
+            language: 'en', mobility: 'limited', transport: 'walking', companions: 'none',
+            accessibility_requirements: [], critical_needs: [],
+          },
+          roads: [], shelters: [],
+          risk: { score: 50, level: 'medium', estimated_action_window_minutes: 32, reasons: [], breakdown: [], prototype_disclaimer: '' },
+          route_recommendation: { recommended_route: null, destination: null, destination_type: 'shelter', estimated_time_minutes: 0, safety_score: 0, reasons: [], rejected_routes: [], all_routes: [], status: 'available' },
+          action_plan: { plan_id: 'live', timestamp: '', language: 'en', hazard: 'flood', risk_score: 50, risk_level: 'medium', action_window_minutes: 32, destination_shelter: '', route_summary: '', now: [], next: [], avoid: [], if_then: [], source_provenance: { source_name: 'Test', source_level: 1, timestamp: '', confidence: 1, verified: true }, disclaimer: '' },
+          is_offline: false, last_event_description: '',
+        }}
+        language="en"
+        isBusy={false}
+        onApply={onApply}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /use my location/i }));
+    });
+
+    expect(onApply).toHaveBeenCalledWith(19.076, 72.8777, 'flood');
   });
 });

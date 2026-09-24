@@ -15,7 +15,7 @@ interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: UserProfile;
-  onUpdateUser: (user: UserProfile) => void;
+  onUpdateUser: (user: UserProfile) => Promise<void>;
   language?: LanguageType;
 }
 
@@ -38,6 +38,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [geoConsent, setGeoConsent] = useState(false);
   const [soundAlerts, setSoundAlerts] = useState(true);
   const [highPriorityAlerts, setHighPriorityAlerts] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -61,7 +63,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     );
   };
 
-  const handleApply = () => {
+  const handleApply = async () => {
     const updated: UserProfile = {
       ...user,
       name,
@@ -71,9 +73,17 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       lat,
       lng,
     };
-    onUpdateUser(updated);
-    updateUserContext({ name, mobility, transport, companions, lat, lng });
-    onClose();
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      await onUpdateUser(updated);
+      updateUserContext({ name, mobility, transport, companions, lat, lng });
+      onClose();
+    } catch (error) {
+      setSaveError(t.settingsSaveFailed);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleResetData = () => {
@@ -206,6 +216,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
         {/* Footer */}
         <div className="bg-slate-50 dark:bg-slate-950 px-5 py-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          {saveError && <span className="text-xs text-red-600 dark:text-red-300" role="alert">{saveError}</span>}
           <button
             onClick={handleResetData}
             className="flex items-center space-x-1 text-slate-500 hover:text-red-500 text-xs transition"
@@ -215,9 +226,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           </button>
           <button
             onClick={handleApply}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-1.5 rounded-xl text-xs transition shadow-md shadow-red-600/20"
+            disabled={isSaving}
+            className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-4 py-1.5 rounded-xl text-xs transition shadow-md shadow-red-600/20"
           >
-            Save Profile
+            {isSaving ? t.savingSettings : t.saveProfile}
           </button>
         </div>
       </div>

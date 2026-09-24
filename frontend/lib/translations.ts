@@ -92,6 +92,12 @@ export interface Translations {
   stepFreeVerified: string;
   roadblockDetected: string;
   recalculatingRoute: string;
+  startSafeRoute: string;
+  recenterMap: string;
+  fitRoute: string;
+  zoomIn: string;
+  zoomOut: string;
+  viewShelter: string;
 
   // Simulation & Controls
   interactiveControls: string;
@@ -199,6 +205,12 @@ export const translations: Record<LanguageType, Translations> = {
     stepFreeVerified: "Step-free ramp verified",
     roadblockDetected: "Roadblock Detected - Path Diverted",
     recalculatingRoute: "Recalculating optimal path...",
+    startSafeRoute: "Start Safe Route",
+    recenterMap: "Recenter Map",
+    fitRoute: "Fit Route",
+    zoomIn: "Zoom In",
+    zoomOut: "Zoom Out",
+    viewShelter: "View Shelter",
 
     interactiveControls: "Interactive Roadblock & Recalculation Controls",
     hideControls: "Hide Controls",
@@ -303,6 +315,12 @@ export const translations: Record<LanguageType, Translations> = {
     stepFreeVerified: "सीढ़ी-रहित रैंप सत्यापित",
     roadblockDetected: "अवरोध मिला - सुरक्षित नया मार्ग",
     recalculatingRoute: "नया सुरक्षित मार्ग खोजा जा रहा है...",
+    startSafeRoute: "सुरक्षित मार्ग शुरू करें",
+    recenterMap: "मानचित्र पुनः केंद्रित करें",
+    fitRoute: "मार्ग फिट करें",
+    zoomIn: "ज़ूम इन",
+    zoomOut: "ज़ूम आउट",
+    viewShelter: "आश्रय देखें",
 
     interactiveControls: "मार्ग अवरोध एवं पुनर्गणना नियंत्रण",
     hideControls: "नियंत्रण छिपाएं",
@@ -407,6 +425,12 @@ export const translations: Record<LanguageType, Translations> = {
     stepFreeVerified: "সিঁড়িমুক্ত র‍্যাম্প যাচাইকৃত",
     roadblockDetected: "বাধা শনাক্ত - বিকল্প নিরাপদ পথ",
     recalculatingRoute: "নতুন পথ নির্ধারণ করা হচ্ছে...",
+    startSafeRoute: "নিরাপদ পথ শুরু করুন",
+    recenterMap: "মানচিত্র পুনঃকেন্দ্র করুন",
+    fitRoute: "পথে ফিট করুন",
+    zoomIn: "জুম ইন",
+    zoomOut: "জুম আউট",
+    viewShelter: "আশ্রয় দেখুন",
 
     interactiveControls: "পথের বাধা ও পুনর্গণনা নিয়ন্ত্রণ",
     hideControls: "নিয়ন্ত্রণ লুকান",
@@ -511,6 +535,12 @@ export const translations: Record<LanguageType, Translations> = {
     stepFreeVerified: "ସିଡ଼ିମୁକ୍ତ ରାମ୍ପ ଯାଞ୍ଚ ହୋଇଛି",
     roadblockDetected: "ଅବରୋଧ ଚିହ୍ନଟ - ନୂତନ ସୁରକ୍ଷିତ ରାସ୍ତା",
     recalculatingRoute: "ନୂତନ ପଥ ଖୋଜାଯାଉଛି...",
+    startSafeRoute: "ନିରାପଦ ପଥ ଆରମ୍ଭ କରନ୍ତୁ",
+    recenterMap: "ମାନଚିତ୍ର ପୁନର୍ବାର କେଣ୍ଡର କରନ୍ତୁ",
+    fitRoute: "ପଥ ମାଧ୍ୟମେ ଫିଟ କରନ୍ତୁ",
+    zoomIn: "ଜୁମ୍ ଇନ୍",
+    zoomOut: "ଜୁମ୍ ଆଉଟ୍",
+    viewShelter: "ଆଶ୍ରୟ ଦେଖନ୍ତୁ",
 
     interactiveControls: "ରାସ୍ତା ଅବରୋଧ ଓ ପୁନଃଗଣନା ନିୟନ୍ତ୍ରଣ",
     hideControls: "ନିୟନ୍ତ୍ରଣ ଲୁଚାନ୍ତୁ",
@@ -615,6 +645,12 @@ export const translations: Record<LanguageType, Translations> = {
     stepFreeVerified: "سیڑھیوں کے بغیر ریمپ تصدیق شدہ",
     roadblockDetected: "رکاوٹ موجود - نیا محفوظ راستہ",
     recalculatingRoute: "نیا راستہ تلاش کیا جا رہا ہے...",
+    startSafeRoute: "محفوظ راستہ شروع کریں",
+    recenterMap: "نقشہ دوبارہ مرکز کریں",
+    fitRoute: "راستہ فٹ کریں",
+    zoomIn: "زوم ان",
+    zoomOut: "زوم آؤٹ",
+    viewShelter: "پناہ گاہ دیکھیں",
 
     interactiveControls: "رکاوٹ اور دوبارہ حساب کے کنٹرولز",
     hideControls: "کنٹرولز چھپائیں",
@@ -719,6 +755,12 @@ export const translations: Record<LanguageType, Translations> = {
     stepFreeVerified: "スロープ設置・階段なし確認済み",
     roadblockDetected: "道路冠水・封鎖を検知 - 代替安全ルートへ切替",
     recalculatingRoute: "最新の安全経路を再計算中...",
+    startSafeRoute: "安全ルートを開始",
+    recenterMap: "地図を中心に戻す",
+    fitRoute: "ルートに合わせる",
+    zoomIn: "拡大",
+    zoomOut: "縮小",
+    viewShelter: "避難所を見る",
 
     interactiveControls: "障害物発生＆リアルタイム再計算シミュレータ",
     hideControls: "操作パネルを閉じる",

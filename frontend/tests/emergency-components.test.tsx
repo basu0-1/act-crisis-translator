@@ -1,186 +1,168 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import EmergencyStatusCard from '../components/EmergencyStatusCard';
-import PersonalRiskCard from '../components/PersonalRiskCard';
-import ActionPlanCards from '../components/ActionPlanCards';
-import ShelterCard from '../components/ShelterCard';
-import SafeRouteMap from '../components/SafeRouteMap';
-import { I18nProvider } from '../hooks/useI18n';
-import { translations } from '../lib/i18n';
-import { EmergencyAlert, RiskAssessment, ActionPlan, Shelter, Route } from '../types';
+import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
+import { EmergencyMap } from '../components/EmergencyMap';
+import { getTranslation } from '../lib/translations';
 
-const renderWithI18n = (ui: React.ReactElement) => {
-  return render(<I18nProvider>{ui}</I18nProvider>);
-};
+vi.mock('leaflet', () => {
+  const buildLayer = () => ({
+    addTo: () => buildLayer(),
+    bindPopup: () => buildLayer(),
+    on: () => buildLayer(),
+    setZIndex: () => buildLayer(),
+    remove: () => buildLayer(),
+  });
 
-const mockAlert: EmergencyAlert = {
-  id: 1,
-  title: 'Flash Flood Surge Warning',
-  description: 'Rising riverbed waters threatening lowland corridors.',
-  emergency_type: 'FLOOD',
-  severity: 'SEVERE',
-  certainty: 'OBSERVED',
-  time_to_impact_minutes: 32,
-  verification_status: 'OFFICIAL_DISPATCH',
-  data_status: 'DEMO',
-  is_active: true,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-};
+  const layerGroup = () => ({
+    addTo: () => layerGroup(),
+    clearLayers: () => layerGroup(),
+    remove: () => layerGroup(),
+  });
 
-const mockRisk: RiskAssessment = {
-  user_id: 1,
-  alert_id: 1,
-  risk_score: 68.5,
-  risk_level: 'HIGH',
-  risk_factors: [
-    {
-      name: 'Emergency Severity',
-      score_impact: 30,
-      description: 'Major flood waters',
-      severity_level: 'SEVERE',
+  return {
+    default: {
+      map: () => ({
+        fitBounds: vi.fn(),
+        setView: vi.fn(),
+        flyTo: vi.fn(),
+        getZoom: vi.fn(() => 12),
+        setZoom: vi.fn(),
+        remove: vi.fn(),
+      }),
+      tileLayer: () => ({ addTo: () => ({}) }),
+      layerGroup,
+      circle: () => buildLayer(),
+      circleMarker: () => buildLayer(),
+      polyline: () => buildLayer(),
+      latLngBounds: () => ({
+        extend: vi.fn(),
+      }),
     },
-    {
-      name: 'Mobility Vulnerability',
-      score_impact: 10,
-      description: 'Limited walking profile',
-      severity_level: 'HIGH',
-    },
-  ],
-  action_window_minutes: 24,
-  disclaimer: 'Prototype decision-support score',
-  created_at: new Date().toISOString(),
-};
+  };
+});
 
-const mockActionPlan: ActionPlan = {
-  user_id: 1,
-  alert_id: 1,
-  do_now: [
-    { id: '1', text: 'Grab emergency go-bag', priority: 'HIGH', category: 'PREPARATION' },
-  ],
-  do_next: [
-    { id: '2', text: 'Notify emergency contacts', priority: 'MEDIUM', category: 'COMMUNICATION' },
-  ],
-  avoid: [
-    { id: '3', text: 'Do not drive through moving water', priority: 'CRITICAL', category: 'HAZARD' },
-  ],
-  if_then: [
-    { id: '4', condition: 'IF Riverside Road is blocked', action: 'THEN take Ridge Ave bypass', severity: 'HIGH' },
-  ],
-  version: 1,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-};
+describe('ACT emergency map', () => {
+  it('renders the Leaflet controls and real shelter labels', () => {
+    render(
+      <EmergencyMap
+        user={{
+          id: 'user-demo-01',
+          name: 'Demo User',
+          lat: 28.6139,
+          lng: 77.2090,
+          language: 'en',
+          mobility: 'limited',
+          transport: 'walking',
+          companions: 'none',
+          accessibility_requirements: ['Step-free access'],
+          critical_needs: ['Medication'],
+        }}
+        alert={{
+          id: 'ALERT-FLD-2026-0891',
+          hazard_type: 'flood',
+          severity: 'high',
+          certainty: 'likely',
+          headline: 'Critical Flash Flood Warning',
+          description: 'Flooding along the northern basin.',
+          lat: 28.6139,
+          lng: 77.2090,
+          radius_km: 5,
+          time_to_impact_minutes: 32,
+          required_action: 'evacuate',
+          source_level: 1,
+          provenance: {
+            source_name: 'Official Alert',
+            source_level: 1,
+            timestamp: '2026-09-02T10:15:00Z',
+            confidence: 0.98,
+            verified: true,
+          },
+          created_at: '2026-09-02T10:15:00Z',
+          active: true,
+        }}
+        roads={[
+          {
+            id: 'R3',
+            name: 'Highland Boulevard',
+            start_node: 'USER_HOME',
+            end_node: 'SHELTER_B',
+            status: 'safe',
+            risk_level: 0.2,
+            accessible_wheelchair: true,
+            has_stairs: false,
+            travel_time_minutes: 14,
+            coordinates: [[77.2090, 28.6139], [77.2150, 28.6300]],
+          },
+        ]}
+        shelters={[
+          {
+            id: 'SHELTER_B',
+            name: 'Shelter B (Highland Safe Haven)',
+            type: 'shelter',
+            lat: 28.6300,
+            lng: 77.2150,
+            capacity: 400,
+            current_occupancy: 120,
+            status: 'open',
+            is_accessible: true,
+            updated_at: '10:14:00 UTC',
+            address: '88 Highland Ridge Avenue',
+          },
+        ]}
+        routeRec={{
+          recommended_route: {
+            route_id: 'R3',
+            name: 'Highland Boulevard',
+            destination_id: 'SHELTER_B',
+            destination_name: 'Shelter B (Highland Safe Haven)',
+            total_distance_km: 1.8,
+            estimated_time_minutes: 14,
+            safety_score: 85,
+            is_accessible: true,
+            has_stairs: false,
+            status: 'safe',
+            steps: [],
+            path_coordinates: [[77.2090, 28.6139], [77.2150, 28.6300]],
+          },
+          destination: {
+            id: 'SHELTER_B',
+            name: 'Shelter B (Highland Safe Haven)',
+            type: 'shelter',
+            lat: 28.6300,
+            lng: 77.2150,
+            capacity: 400,
+            current_occupancy: 120,
+            status: 'open',
+            is_accessible: true,
+            updated_at: '10:14:00 UTC',
+            address: '88 Highland Ridge Avenue',
+          },
+          destination_type: 'shelter',
+          estimated_time_minutes: 14,
+          safety_score: 85,
+          reasons: ['Safe route available'],
+          rejected_routes: [],
+          all_routes: [],
+          status: 'available',
+        }}
+        language="en"
+      />
+    );
 
-const mockShelter: Shelter = {
-  id: 1,
-  name: 'Community Civic Center',
-  address: '800 Civic Plaza',
-  latitude: 37.781,
-  longitude: -122.408,
-  capacity_total: 250,
-  capacity_available: 112,
-  wheelchair_accessible: true,
-  medical_support: true,
-  pet_friendly: false,
-  status: 'OPEN',
-  last_verified: new Date().toISOString(),
-  is_active: true,
-};
-
-const mockRoute: Route = {
-  id: 1,
-  user_id: 1,
-  alert_id: 1,
-  shelter_id: 1,
-  origin_lat: 37.7749,
-  origin_lon: -122.4194,
-  destination_lat: 37.7810,
-  destination_lon: -122.4080,
-  distance_meters: 1600,
-  estimated_time_minutes: 10,
-  mobility_tier: 'NORMAL',
-  waypoints_geojson: {
-    type: 'FeatureCollection',
-    properties: {
-      accessibility_info: 'Standard pedestrian corridor, unconstrained walking grade.',
-    },
-    features: [],
-  },
-  is_blocked: false,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-};
-
-describe('Emergency Decision Components', () => {
-  it('renders EmergencyStatusCard with proper demo badge and severity', () => {
-    renderWithI18n(<EmergencyStatusCard alert={mockAlert} />);
-    expect(screen.getByText('Flash Flood Surge Warning')).toBeDefined();
-    expect(screen.getByText('SIMULATED / DEMO SCENARIO')).toBeDefined();
-    expect(screen.getByText('SEVERE')).toBeDefined();
+    expect(screen.getByLabelText(/zoom in/i)).toBeTruthy();
+    expect(screen.getByLabelText(/zoom out/i)).toBeTruthy();
+    expect(screen.getByLabelText(/recenter map/i)).toBeTruthy();
+    expect(screen.getByLabelText(/fit route/i)).toBeTruthy();
+    expect(screen.getByText(/leaflet/i)).toBeTruthy();
   });
 
-  it('renders PersonalRiskCard with transparent score and disclaimer', () => {
-    renderWithI18n(<PersonalRiskCard risk={mockRisk} mobility="LIMITED_WALKING" />);
-    expect(screen.getByText('69')).toBeDefined(); // rounded
-    expect(screen.getAllByText('HIGH').length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Prototype decision-support score/i).length).toBeGreaterThan(0);
-    expect(screen.getByText('Emergency Severity')).toBeDefined();
-  });
-
-  it('renders ActionPlanCards with DO NOW, NEXT, AVOID, and IF->THEN', () => {
-    renderWithI18n(<ActionPlanCards plan={mockActionPlan} />);
-    expect(screen.getByText('Grab emergency go-bag')).toBeDefined();
-    expect(screen.getByText('Notify emergency contacts')).toBeDefined();
-    expect(screen.getByText('Do not drive through moving water')).toBeDefined();
-    expect(screen.getByText('IF Riverside Road is blocked')).toBeDefined();
-    expect(screen.getByText('THEN take Ridge Ave bypass')).toBeDefined();
-  });
-
-  it('renders ShelterCard with accessibility and availability', () => {
-    renderWithI18n(<ShelterCard shelter={mockShelter} distanceMeters={1600} estimatedMinutes={12} />);
-    expect(screen.getByText('Community Civic Center')).toBeDefined();
-    expect(screen.getByText('112 / 250')).toBeDefined();
-    expect(screen.getByText('Wheelchair Ready')).toBeDefined();
-    expect(screen.getByText('OPEN')).toBeDefined();
-  });
-
-  it('verifies multilingual translation coverage across EN, HI, and JA', () => {
-    expect(translations.en.statusDemo).toBe('SIMULATED / DEMO SCENARIO');
-    expect(translations.hi.statusDemo).toBe('सिम्युलेटेड / डेमो परिदृश्य');
-    expect(translations.ja.statusDemo).toBe('シミュレーション / デモシナリオ');
-
-    expect(translations.en.qWhatHappened).toBe('What is happening?');
-    expect(translations.hi.qWhatHappened).toBe('क्या हो रहा है?');
-    expect(translations.ja.qWhatHappened).toBe('何が起きているのか？');
-  });
-
-  it('renders SafeRouteMap with accessible Mobility Tier selector and options', () => {
-    renderWithI18n(<SafeRouteMap route={mockRoute} />);
-    const select = screen.getByLabelText(/Mobility Tier/i) as HTMLSelectElement;
-    expect(select).toBeDefined();
-    expect(select.value).toBe('NORMAL');
-    expect(screen.getByRole('option', { name: 'NORMAL' })).toBeDefined();
-    expect(screen.getByRole('option', { name: 'LIMITED WALKING' })).toBeDefined();
-    expect(screen.getByRole('option', { name: 'WHEELCHAIR' })).toBeDefined();
-    expect(screen.getByText('Standard pedestrian corridor, unconstrained walking grade.')).toBeDefined();
-  });
-
-  it('triggers onMobilityChange when user selects a different mobility tier', () => {
-    const onMobilityChange = vi.fn();
-    renderWithI18n(<SafeRouteMap route={mockRoute} onMobilityChange={onMobilityChange} />);
-    const select = screen.getByLabelText(/Mobility Tier/i);
-    fireEvent.change(select, { target: { value: 'WHEELCHAIR' } });
-    expect(onMobilityChange).toHaveBeenCalledWith('WHEELCHAIR');
-  });
-
-  it('renders fallback when accessibility information is unavailable', () => {
-    const routeWithoutAccessibility: Route = {
-      ...mockRoute,
-      waypoints_geojson: null,
-    };
-    renderWithI18n(<SafeRouteMap route={routeWithoutAccessibility} />);
-    expect(screen.getByText('Information unavailable.')).toBeDefined();
+  it('contains the map control translations required by the ACT UI', () => {
+    const en = getTranslation('en');
+    expect(en.zoomIn).toBe('Zoom In');
+    expect(en.zoomOut).toBe('Zoom Out');
+    expect(en.recenterMap).toBe('Recenter Map');
+    expect(en.fitRoute).toBe('Fit Route');
+    expect(en.startSafeRoute).toBe('Start Safe Route');
   });
 });

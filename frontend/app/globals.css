@@ -1,3 +1,5 @@
+@import "leaflet/dist/leaflet.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -27,6 +29,70 @@ html.light body {
 html.dark body {
   background-color: #020617;
   color: #f8fafc;
+}
+
+/* Custom Leaflet Dark & Light mode integration */
+.leaflet-container {
+  font-family: inherit;
+  width: 100%;
+  height: 100%;
+  background-color: #0b0f19;
+}
+
+html.light .leaflet-container {
+  background-color: #f1f5f9;
+}
+
+/* Custom popup styling */
+.act-map-popup .leaflet-popup-content-wrapper {
+  background: #0f172a;
+  color: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #334155;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  padding: 0;
+  overflow: hidden;
+}
+
+html.light .act-map-popup .leaflet-popup-content-wrapper {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.act-map-popup .leaflet-popup-content {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.act-map-popup .leaflet-popup-tip {
+  background: #0f172a;
+}
+
+html.light .act-map-popup .leaflet-popup-tip {
+  background: #ffffff;
+}
+
+/* Marker pulse animations */
+@keyframes beaconPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(220, 38, 38, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+.animate-beacon {
+  animation: beaconPulse 2s infinite;
+}
+
+@keyframes safeBeaconPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.8); }
+  70% { transform: scale(1); box-shadow: 0 0 0 16px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.animate-safe-beacon {
+  animation: safeBeaconPulse 2s infinite;
 }
 
 @keyframes pulse-subtle {

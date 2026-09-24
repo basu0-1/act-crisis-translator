@@ -1,142 +1,145 @@
-# ACT — Actionable Crisis Translator (v2.4.0)
+# ACT — Actionable Crisis Translator
 
-> **"Turn emergency information into clear personal decisions."**
+ACT is an emergency decision-support system that translates official hazard information into personalized, accessibility-aware guidance. The backend remains the source of truth for decision logic, and the frontend renders that state for the user.
 
-[![CI Tests](https://img.shields.io/badge/pytest-35%20passed-brightgreen.svg)]()
-[![Next.js](https://img.shields.io/badge/Next.js-14.2-black.svg)]()
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Security: RBAC](https://img.shields.io/badge/Security-Strict%20RBAC%20(JWT)-blueviolet.svg)]()
-[![PDF Documentation](https://img.shields.io/badge/Documentation-PDF%20Available-crimson.svg)](./ACT_System_Documentation.pdf)
+## What ACT solves
 
----
+The platform turns broad emergency alerts into clear personal instructions for:
 
-## 📄 Comprehensive PDF Documentation
-A complete technical architecture specification, competitive benchmark analysis, and system documentation is available as a publication-ready PDF:
-👉 **[Download ACT_System_Documentation.pdf](./ACT_System_Documentation.pdf)** or find it in [`docs/ACT_System_Documentation_and_Competitive_Analysis.pdf`](./docs/ACT_System_Documentation_and_Competitive_Analysis.pdf).
+- hazard severity and time-to-impact
+- personal mobility constraints
+- accessible route guidance
+- shelter assignment and occupancy
+- roadblock-triggered route recalculation
+- multilingual user guidance
+- fail-safe behavior during degraded connectivity
 
----
+## Decision pipeline
 
-## 🚨 What is ACT?
+The system follows the flow:
 
-**ACT (Actionable Crisis Translator)** is an autonomous, personalized emergency decision-support platform. It solves the **"Information Paradox"** in disaster management by translating technical, broadcast-level disaster alerts into immediate, step-free survival directives tailored to individual physical mobility, transport modes, and family companions.
+HAZARD → PERSON → RISK → ROUTE → ACTION → ADAPT
 
-### Key Capabilities & What Makes ACT Best & Unique:
-- **Zero-Hallucination Deterministic Engine**: Mathematical rule engines govern all risk calculations, Dijkstra graph routing, and shelter capacity assignments. Generative AI is restricted to structured fact extraction and multilingual translation—preventing lethal hallucinations.
-- **Dynamic Roadblock Rerouting**: When a road or bridge floods (e.g. Route C / Highland Blvd), ACT's event engine blacklists the corridor and automatically pivots to an alternative safe path and secondary shelter (`Shelter C - Highland Ridge`).
-- **Accessibility-First Routing**: Specialized graph traversal strictly rejects stairs and enforces step-free ramps for wheelchair users and citizens with limited walking mobility.
-- **Hyper-Personalized Risk Score**: $Risk = Severity (35\%) \times Exposure (25\%) \times Mobility (25\%) \times Time (15\%)$ producing a calibrated 0–100 score.
-- **4-Tier Source Hierarchy**: Level 1 Official (NDMA, IMD, USGS) > Level 2 Sensor Mesh > Level 3 On-Ground Responders > Level 4 Crowdsourced Telemetry.
-- **6 Native Languages with Voice Audio**: Instant linguistic switching between **English (`en`)**, **Hindi (`hi`)**, **Bengali (`bn`)**, **Odia (`or`)**, **Urdu (`ur`)**, and **Japanese (`ja`)**, with Web Speech API audio synthesis. Every single word across the UI translates dynamically.
-- **ChatGPT-Style Collapsible Sidebar**: Modern AI workspace ergonomics featuring a collapsible/expandable sidebar with quick assessment actions, hazard badges, and bottom user card, paired with a minimal Top Bar and seamless Light/Dark theme switching.
-- **Complete Offline Resiliency & Fail-Safe Mode**: Offline caching ensures usability during cellular outages. Missing telemetry triggers conservative vertical shelter-in-place directives.
+In the repository, this is implemented in the backend with:
 
----
+- alert engine
+- risk engine
+- route engine
+- decision engine
+- simulation and API layer
 
-## 📊 Competitive Benchmark: ACT vs Existing Systems
+## Agent architecture
 
-| Capability Dimension | Traditional SMS / TV | Google Public Alerts | FEMA Mobile App | Generic LLM (ChatGPT) | **ACT (This Platform)** |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Personalized Risk Score** | ❌ None (Broadcast) | ❌ Polygon only | ❌ Static checklist | ⚠️ Inconsistent guess | **✓ Formula-based (0–100)** |
-| **Dynamic Roadblock Reroute** | ❌ None | ⚠️ Standard traffic | ❌ Static directory | ❌ No geospatial graph | **✓ Real-time corridor & haven pivot** |
-| **Step-Free / Ramp Routing** | ❌ Ignored | ⚠️ Limited street view | ❌ Generic text | ❌ Hallucinates paths | **✓ Guaranteed stair-free validation** |
-| **Hallucination Prevention** | ✓ Official text | ✓ Official feeds | ✓ Static content | ❌ Dangerous confabulation | **✓ Zero-Hallucination Engine** |
-| **Action Plan Directives** | ❌ Unstructured | ⚠️ Long paragraphs | ⚠️ Static advice | ⚠️ Verbose prose | **✓ DO NOW, NEXT, AVOID + TTS Audio** |
-| **Live Shelter Balancing** | ❌ No telemetry | ⚠️ External link | ⚠️ Static directory | ❌ No database state | **✓ Live capacity & slot tracking** |
-| **Offline Reliability** | ✓ SMS offline | ❌ Needs web | ⚠️ Cached guides | ❌ Needs cloud API | **✓ Full offline cache + fail-safe** |
-| **Linguistic Localization** | ⚠️ 1–2 languages | ✓ Auto-translate | ⚠️ EN / ES only | ✓ Multi-language | **✓ 6 Native Langs (Odia, Bengali...)** |
-| **UI Design & Ergonomics** | ❌ Plain text | ⚠️ Search card | ⚠️ Form tabs | ✓ Conversational | **✓ ChatGPT Sidebar + Light/Dark** |
+The project includes a specialized agent pipeline for ACT:
 
----
+- Alert Analyst
+- Risk Analyst
+- Route Analyst
+- Action Planner
+- Communication Agent
 
-## 🏗️ System Architecture & 5-Agent Pipeline
+## Core features
 
-```mermaid
-flowchart TD
-    subgraph S1["Data Ingestion & 4-Tier Provenance"]
-        A1["Level 1: Official Authorities (NDMA, IMD, USGS)"]
-        A2["Level 2: Sensors & Stream Gauges"]
-        A3["Level 3: Verified On-Ground Responders"]
-        A4["Level 4: Crowdsourced Telemetry"]
-    end
+- risk scoring based on severity, mobility, exposure, and urgency
+- accessibility-aware route selection that avoids unsafe or stair-heavy paths
+- dynamic shelter recommendation and capacity checks
+- simulation-triggered roadblock events and backend route recalculation
+- multilingual support across English, Hindi, Bengali, Odia, Urdu, and Japanese
+- offline fallback behavior when the API is unavailable
+- Leaflet-based map visualization that does not replace the backend route engine
 
-    subgraph S2["Deterministic Mathematical Engines"]
-        E1["Alert Engine\n(4-Tier Hierarchy & Conflict Resolution)"]
-        E2["Risk Engine\n(Severity × Exposure × Mobility × Time)"]
-        E3["Route Engine\n(Dijkstra Pathfinding & Stair-Free Filter)"]
-        E4["Decision Engine\n(Assembly & Fact Verification)"]
-    end
+## Frontend architecture
 
-    subgraph S3["5-Agent Collaborative AI Pipeline"]
-        AG1["Agent 1: Alert Analyst"]
-        AG2["Agent 2: Risk Analyst"]
-        AG3["Agent 3: Route Analyst"]
-        AG4["Agent 4: Action Planner (NOW, NEXT, AVOID, IF→THEN)"]
-        AG5["Agent 5: Communication Agent (EN / HI / BN / OR / UR / JA)"]
-    end
+The primary interactive map is the `EmergencyMap` component. It uses Leaflet only as a visualization layer. It reads data from the existing ACT backend and renders:
 
-    subgraph S4["Client Layer (Next.js 14)"]
-        UI1["ChatGPT-Style Collapsible Sidebar"]
-        UI2["Streamlined Top Bar (Language, Theme, Audit)"]
-        UI3["4-Row Minimal Emergency Dashboard"]
-        UI4["Dynamic Roadblock Simulation Controls"]
-    end
+- user position from the user profile
+- shelter markers from the shelter registry
+- route path from the recommended route's `path_coordinates`
+- hazard radius from the active alert when geographic geometry is available
+- road status overlays from the road network
 
-    S1 --> E1
-    E1 --> E2
-    E2 --> E3
-    E3 --> E4
-    E4 --> S3
-    S3 --> S4
-```
+## Backend architecture
 
----
+The backend exposes a FastAPI API used by the dashboard, including:
 
-## 🚀 How to Run the Project Locally
+- alert status
+- personal risk
+- route recommendations
+- shelter data
+- simulation controls
+- roadblock and route recalculation events
 
-### 1. Start the Backend API (FastAPI)
+The ACT backend remains the system of record for routing, shelter logic, decision logic, and simulation updates.
+
+## Demo flow
+
+The default demo follows this sequence:
+
+1. User opens the dashboard.
+2. ACT loads the active emergency alert.
+3. ACT evaluates the personal risk and assigns a recommended shelter.
+4. ACT displays the safe route on the map.
+5. The simulation triggers a roadblock.
+6. The backend recalculates the route.
+7. The map and action plan update to the new route and shelter.
+
+## Geographic map implementation
+
+The app uses Leaflet for the live map and controls. It includes:
+
+- Zoom In
+- Zoom Out
+- Recenter Map
+- Fit Route
+
+The map uses real application coordinates when they are present and safely avoids fabricated data when they are missing.
+
+## Development setup
+
+### Backend
+
 ```powershell
 cd C:\Projects\act\backend
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-- Interactive Swagger API Documentation: `http://localhost:8000/docs`
-- Health check: `http://localhost:8000/api/health`
 
-### 2. Start the Frontend Web Application (Next.js 14)
+### Frontend
+
 ```powershell
 cd C:\Projects\act\frontend
+npm install
 npm run dev
 ```
-- Interactive Web App: `http://localhost:3000`
 
-### 3. Run Automated Tests
+### API docs
+
+`http://localhost:8000/docs`
+
+### Tests
+
 ```powershell
 cd C:\Projects\act\backend
 pytest -v
 ```
-*Current test suite: **35 / 35 passed in 1.31s**.*
-
----
-
-## 📦 GitHub Update & Push Commands
-
-To commit and push all recent improvements (documentation, PDF, ChatGPT sidebar, multi-language engine) to GitHub:
 
 ```powershell
-# 1. Navigate to the project directory
-cd C:\Projects\act
-
-# 2. Check the status of your branch
-git status
-
-# 3. Stage all modified and new files (including docs, PDF, components)
-git add -A
-
-# 4. Commit changes with a descriptive message
-git commit -m "feat: complete system documentation, competitive benchmark PDF, ChatGPT sidebar, and multi-language engine"
-
-# 5. Push commits to GitHub repository (origin/main)
-git push origin main
+cd C:\Projects\act\frontend
+npm run build
 ```
 
-*(Note: When prompted for credentials, use your GitHub username and Personal Access Token).*
+## Environment notes
+
+- default backend URL: `http://localhost:8000`
+- frontend API base can be set with `NEXT_PUBLIC_API_URL`
+- offline cached fallback remains supported for fail-safe behavior
+
+## Accessibility and safety
+
+- keyboard-accessible controls are used for the map layer
+- action information remains visible without hover-only interactions
+- missing geographic information does not get replaced with invented coordinates
+- the dashboard preserves the emergency action plan while the map updates
+
+## Repository note
+
+The ACT backend is the source of truth for routing, shelter assignment, risk scoring, and simulation state. The map is a visualization layer only.
